@@ -49,8 +49,8 @@ class RequestFactory implements RequestFactoryContract
                     $genericAuthRequest,
                     self::createUrls($data['redirect']),
                     $data['pseudocardpan'],
-                    $data['successurl'],
-                    $data['errorurl']
+                    $data['successurl'] ?? '',
+                    $data['errorurl'] ?? ''
                 );
 
             case PaymentTypes::PAYONE_DIRECT_DEBIT:
