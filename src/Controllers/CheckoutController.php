@@ -22,6 +22,7 @@ use Payone\Services\SepaMandate;
 use Payone\Validator\CardExpireDate;
 use Payone\Views\ErrorMessageRenderer;
 use Plenty\Modules\Basket\Contracts\BasketRepositoryContract;
+use Plenty\Modules\Payment\Contracts\PaymentRepositoryContract;
 use Plenty\Modules\Webshop\Contracts\LocalizationRepositoryContract;
 use Plenty\Plugin\Controller;
 use Plenty\Plugin\Http\Request;
@@ -45,6 +46,7 @@ use Payone\Services\KlarnaService;
 use Payone\Models\Api\GenericPayment\StartSessionResponse;
 use Payone\Models\Api\GenericPayment\ConfirmOrderReferenceResponse;
 use Payone\Models\Api\GenericPayment\SetOrderReferenceDetailsResponse;
+use Plenty\Modules\Payment\Models\Payment;
 
 
 /**
@@ -648,7 +650,7 @@ class CheckoutController extends Controller
      *
      * @return string
      */
-    public function checkoutSuccess(BasketRepositoryContract $basketReopo, PaymentHelper $helper, PaymentCache $paymentCache)
+    public function checkoutSuccess(BasketRepositoryContract $basketReopo, PaymentHelper $helper, PaymentCache $paymentCache, PaymentRepositoryContract $paymentRepositoryContract)
     {
         $this->logger->setIdentifier(__METHOD__);
 
@@ -675,6 +677,9 @@ class CheckoutController extends Controller
         }
 
         $payment = $paymentCache->loadPayment($basket->methodOfPaymentId);
+        $payment->status = Payment::STATUS_APPROVED;
+        $paymentRepositoryContract->updatePayment($payment);
+
         $this->logger->error('Controller.Success', ['bascket' => $basket, 'payment' => $payment]);
 
         $paymentCache->resetActiveBasketId();
