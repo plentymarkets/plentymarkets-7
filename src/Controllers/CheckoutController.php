@@ -668,11 +668,14 @@ class CheckoutController extends Controller
         }
 
         $basket = $basketReopo->load();
-        $this->logger->error('Controller.Success', ['bascket' => $basket]);
+
 
         if (!$helper->isPayonePayment($basket->methodOfPaymentId)) {
             return $this->response->redirectTo('payone/error' . ShopHelper::getTrailingSlash());
         }
+
+        $payment = $paymentCache->loadPayment($basket->methodOfPaymentId);
+        $this->logger->error('Controller.Success', ['bascket' => $basket, 'payment' => $payment]);
 
         $paymentCache->resetActiveBasketId();
         return $this->response->redirectTo($this->localizationRepositoryContract->getLanguage().'/place-order');
