@@ -655,11 +655,6 @@ class CheckoutController extends Controller
         $this->logger->debug('Controller.Success', $this->request->all());
         $transactionBasketId = $this->request->get('transactionBasketId');
 
-        /** @var BasketRepositoryContract $bascketRepo */
-        $bascketRepo = pluginApp(BasketRepositoryContract::class);
-        $basketContent = $bascketRepo->load()->toArray();
-        $this->logger->debug('Controller.Success', ['bascket' => $basketContent]);
-
         if (strlen($transactionBasketId)) {
             $storedBasketId = $paymentCache->getActiveBasketId();
             if ($storedBasketId === null) {
@@ -671,7 +666,10 @@ class CheckoutController extends Controller
         } else {
             return $this->response->redirectTo('payone/error' . ShopHelper::getTrailingSlash());
         }
+
         $basket = $basketReopo->load();
+        $this->logger->error('Controller.Success', ['bascket' => $basket]);
+
         if (!$helper->isPayonePayment($basket->methodOfPaymentId)) {
             return $this->response->redirectTo('payone/error' . ShopHelper::getTrailingSlash());
         }
