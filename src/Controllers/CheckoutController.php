@@ -651,12 +651,19 @@ class CheckoutController extends Controller
     public function checkoutSuccess(BasketRepositoryContract $basketReopo, PaymentHelper $helper, PaymentCache $paymentCache)
     {
         $this->logger->setIdentifier(__METHOD__);
+
         $this->logger->debug('Controller.Success', $this->request->all());
         $transactionBasketId = $this->request->get('transactionBasketId');
 
         if (strlen($transactionBasketId)) {
             $storedBasketId = $paymentCache->getActiveBasketId();
             if ($storedBasketId === null) {
+
+                /** @var BasketRepositoryContract $bascketRepo */
+                $bascketRepo = pluginApp(BasketRepositoryContract::class);
+                $basketContent = $bascketRepo->load()->toArray();
+                $this->logger->debug('Controller.Success', ['bascket' => $basketContent]);
+
                 return $this->response->redirectTo('confirmation');
             }
             if ($storedBasketId != $transactionBasketId) {
