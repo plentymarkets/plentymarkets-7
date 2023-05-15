@@ -686,20 +686,29 @@ class CheckoutController extends Controller
 
         //only if cc with 3ds only in the cause of AUTH the payment should be set as approved
         //for the preAuth there is an event procedure that will take care of this
+        $dataLog = [
+            'methodId' => $payoneCCPaymentMethodId,
+            'bascketMMethodId' => $basket->methodOfPaymentId,
+        ];
         if($basket->methodOfPaymentId == $payoneCCPaymentMethodId) {
+            $dataLog['here'] = 'here';
             /** @var SettingsService $settingsService */
             $settingsService = pluginApp(SettingsService::class);
             $authType = $settingsService->getPaymentSettingsValue('AuthType', PayoneCCPaymentMethod::PAYMENT_CODE);
+            $dataLog['authType1'] = $authType;
             if(!isset($authType) || $authType == -1) {
                 $authType = $settingsService->getSettingsValue('authType');
+                $dataLog['authType2'] = $authType;
             }
             if ($authType == PaymentService::AUTH_TYPE_AUTH) {
+                $dataLog['here'] = $authType;
                 $payment->status = Payment::STATUS_APPROVED;
             }
         }
 
+
         $paymentRepositoryContract->updatePayment($payment);
-        $this->logger->error('Controller.Success', ['bascket' => $basket, 'payment' => $payment]);
+        $this->logger->error('Controller.Success', ['bascket' => $basket, 'payment' => $payment, 'dataLog' => $dataLog]);
 
         $paymentCache->resetActiveBasketId();
         return $this->response->redirectTo($this->localizationRepositoryContract->getLanguage().'/place-order');
