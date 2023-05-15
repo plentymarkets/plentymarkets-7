@@ -383,6 +383,7 @@ class PaymentCreation
         if ($payment->currency != $defaultCurrency) {
             $payment->exchangeRatio = $order->amount->exchangeRate;
             $payment->isSystemCurrency = $order->amount->isSystemCurrency;
+            $payment->status = Payment::STATUS_APPROVED;
         }
 
         $payment = $this->paymentRepository->updatePayment($payment);
