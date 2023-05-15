@@ -9,6 +9,7 @@ use Payone\Helpers\PaymentHelper;
 use Payone\Helpers\SessionHelper;
 use Payone\Helpers\ShopHelper;
 use Payone\Methods\PayoneAmazonPayPaymentMethod;
+use Payone\Methods\PayoneCCPaymentMethod;
 use Payone\Models\BankAccount;
 use Payone\Models\BankAccountCache;
 use Payone\Models\CreditCardCheckResponse;
@@ -19,6 +20,7 @@ use Payone\PluginConstants;
 use Payone\Services\AmazonPayService;
 use Payone\Services\PaymentService;
 use Payone\Services\SepaMandate;
+use Payone\Services\SettingsService;
 use Payone\Validator\CardExpireDate;
 use Payone\Views\ErrorMessageRenderer;
 use Plenty\Modules\Basket\Contracts\BasketRepositoryContract;
@@ -677,9 +679,26 @@ class CheckoutController extends Controller
         }
 
         $payment = $paymentCache->loadPayment($basket->methodOfPaymentId);
-        $payment->status = Payment::STATUS_APPROVED;
-        $paymentRepositoryContract->updatePayment($payment);
 
+        /** @var PaymentHelper $paymentHelper */
+        $paymentHelper = pluginApp(PaymentHelper::class);
+        $payoneCCPaymentMethodId = $paymentHelper->getMopId(PayoneCCPaymentMethod::PAYMENT_CODE);
+
+        //only if cc with 3ds only in the cause of AUTH the payment should be set as approved
+        //for the preAuth there is an event procedure that will take care of this
+        if($basket->methodOfPaymentId == $payoneCCPaymentMethodId) {
+            /** @var SettingsService $settingsService */
+            $settingsService = pluginApp(SettingsService::class);
+            $authType = $settingsService->getPaymentSettingsValue('AuthType', PayoneCCPaymentMethod::PAYMENT_CODE);
+            if(!isset($authType) || $authType == -1) {
+                $authType = $settingsService->getSettingsValue('authType');
+            }
+            if ($authType == PaymentService::AUTH_TYPE_AUTH) {
+                $payment->status = Payment::STATUS_APPROVED;
+            }
+        }
+
+        $paymentRepositoryContract->updatePayment($payment);
         $this->logger->error('Controller.Success', ['bascket' => $basket, 'payment' => $payment]);
 
         $paymentCache->resetActiveBasketId();
