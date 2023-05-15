@@ -121,7 +121,7 @@ class PaymentCreation
 
         $payment->mopId = (int) $mopId;
         $payment->transactionType = Payment::TRANSACTION_TYPE_BOOKED_POSTING;
-        $payment->status =  $response->getRedirectUrl() !== '' ? Payment::STATUS_AWAITING_APPROVAL :  Payment::STATUS_APPROVED;
+        $payment->status =  $response->getRedirecturl() !== '' ? Payment::STATUS_AWAITING_APPROVAL :  Payment::STATUS_APPROVED;
 
         $payment->currency = $paymentData['basket']['currency'];
 
@@ -383,7 +383,7 @@ class PaymentCreation
         if ($payment->currency != $defaultCurrency) {
             $payment->exchangeRatio = $order->amount->exchangeRate;
             $payment->isSystemCurrency = $order->amount->isSystemCurrency;
-//            $payment->status = Payment::STATUS_APPROVED;
+            $payment->status = Payment::STATUS_APPROVED;
         }
 
         $payment = $this->paymentRepository->updatePayment($payment);
