@@ -25,6 +25,7 @@ use Payone\Validator\CardExpireDate;
 use Payone\Views\ErrorMessageRenderer;
 use Plenty\Modules\Basket\Contracts\BasketRepositoryContract;
 use Plenty\Modules\Payment\Contracts\PaymentRepositoryContract;
+use Plenty\Modules\Payment\Models\PaymentProperty;
 use Plenty\Modules\Webshop\Contracts\LocalizationRepositoryContract;
 use Plenty\Plugin\Controller;
 use Plenty\Plugin\Http\Request;
@@ -686,26 +687,17 @@ class CheckoutController extends Controller
 
         //only if cc with 3ds only in the cause of AUTH the payment should be set as approved
         //for the preAuth there is an event procedure that will take care of this
-        $dataLog = [
-            'methodId' => $payoneCCPaymentMethodId,
-            'bascketMMethodId' => $basket->methodOfPaymentId,
-        ];
         if($basket->methodOfPaymentId == $payoneCCPaymentMethodId) {
-            $dataLog['here'] = 'here';
-            /** @var SettingsService $settingsService */
-            $settingsService = pluginApp(SettingsService::class);
-            $authType = $settingsService->getPaymentSettingsValue('AuthType', PayoneCCPaymentMethod::PAYMENT_CODE);
-            $dataLog['authType1'] = $authType;
-            if(!isset($authType) || $authType == -1) {
-                $authType = $settingsService->getSettingsValue('authType');
-                $dataLog['authType2'] = $authType;
-            }
-            if ($authType == PaymentService::AUTH_TYPE_AUTH) {
-                $dataLog['here'] = $authType;
+            $paymentPropertyText = $paymentHelper->getPaymentPropertyValue(
+                $payment,
+                PaymentProperty::TYPE_PAYMENT_TEXT
+            );
+
+            $paymentPropertyText = json_decode($paymentPropertyText, true);
+            if (!empty($paymentPropertyText['Request type']) && $paymentPropertyText['Request type'] == 'Auth') {
                 $payment->status = Payment::STATUS_APPROVED;
             }
         }
-
 
         $paymentRepositoryContract->updatePayment($payment);
         $this->logger->error('Controller.Success', ['bascket' => $basket, 'payment' => $payment, 'dataLog' => $dataLog]);

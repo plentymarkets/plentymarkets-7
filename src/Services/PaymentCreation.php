@@ -4,6 +4,7 @@ namespace Payone\Services;
 
 use Payone\Adapter\Logger;
 use Payone\Helpers\PaymentHelper;
+use Payone\Methods\PayoneCCPaymentMethod;
 use Payone\Models\Api\AuthResponse;
 use Payone\Models\Api\Clearing\Bank;
 use Payone\Models\Api\Clearing\ClearingAbstract;
@@ -166,8 +167,15 @@ class PaymentCreation
             PaymentProperty::TYPE_INVOICE_ADDRESS_ID,
             $basket->customerInvoiceAddressId);
 
+        /** @var SettingsService $settingsService */
+        $settingsService = pluginApp(SettingsService::class);
+        $authType = $settingsService->getPaymentSettingsValue('AuthType', $paymentCode);
+        if(!isset($authType) || $authType == -1) {
+            $authType = $settingsService->getSettingsValue('authType');
+        }
+
         $paymentText = [
-            'Request type' => 'PreAuth',
+            'Request type' => $authType == PaymentService::AUTH_TYPE_AUTH ? 'Auth' : 'PreAuth',
             'TransactionID' => $transactionID,
         ];
 
