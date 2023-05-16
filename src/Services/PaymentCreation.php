@@ -122,7 +122,10 @@ class PaymentCreation
 
         $payment->mopId = (int) $mopId;
         $payment->transactionType = Payment::TRANSACTION_TYPE_BOOKED_POSTING;
-        $payment->status =  $response->getRedirecturl() !== '' ? Payment::STATUS_AWAITING_APPROVAL :  Payment::STATUS_APPROVED;
+
+        // for CC payment and redirect URL (3ds) we set the payment for awaiting approval
+        // the payment will be updated on the success page  and for the preAuth the payment will be updated in the event procedure
+        $payment->status =  ($response->getRedirecturl() !== '' && $paymentCode == PayoneCCPaymentMethod::PAYMENT_CODE) ? Payment::STATUS_AWAITING_APPROVAL :  Payment::STATUS_APPROVED;
 
         $payment->currency = $paymentData['basket']['currency'];
 
