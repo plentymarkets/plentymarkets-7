@@ -9,6 +9,7 @@ use Payone\Helpers\PaymentHelper;
 use Payone\Helpers\SessionHelper;
 use Payone\Helpers\ShopHelper;
 use Payone\Methods\PayoneAmazonPayPaymentMethod;
+use Payone\Methods\PayoneCCPaymentMethod;
 use Payone\Models\BankAccount;
 use Payone\Models\BankAccountCache;
 use Payone\Models\CreditCardCheckResponse;
