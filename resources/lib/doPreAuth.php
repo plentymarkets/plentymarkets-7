@@ -30,6 +30,9 @@ try {
     $data['amazonPayAuth'] = $sdkRestApi::getParam('amazonPayAuth');
     $data['klarnaAuthToken'] = $sdkRestApi::getParam('klarnaAuthToken');
     $data['klarnaWorkOrderId'] = $sdkRestApi::getParam('klarnaWorkOrderId');
+    $data['successurl'] = $sdkRestApi::getParam('successurl');
+    $data['errorurl'] = $sdkRestApi::getParam('errorurl');
+
     $paymentMethod = $sdkRestApi::getParam('paymentMethod');
 
     $request = RequestFactory::create($paymentMethod, $data);

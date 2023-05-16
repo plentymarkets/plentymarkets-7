@@ -22,6 +22,9 @@ use Payone\Services\SepaMandate;
 use Payone\Validator\CardExpireDate;
 use Payone\Views\ErrorMessageRenderer;
 use Plenty\Modules\Basket\Contracts\BasketRepositoryContract;
+use Plenty\Modules\Payment\Contracts\PaymentRepositoryContract;
+use Plenty\Modules\Payment\Models\Payment;
+use Plenty\Modules\Payment\Models\PaymentProperty;
 use Plenty\Modules\Webshop\Contracts\LocalizationRepositoryContract;
 use Plenty\Plugin\Controller;
 use Plenty\Plugin\Http\Request;
@@ -646,7 +649,7 @@ class CheckoutController extends Controller
      *
      * @return string
      */
-    public function checkoutSuccess(BasketRepositoryContract $basketReopo, PaymentHelper $helper, PaymentCache $paymentCache)
+    public function checkoutSuccess(BasketRepositoryContract $basketReopo, PaymentHelper $helper, PaymentCache $paymentCache, PaymentRepositoryContract $paymentRepositoryContract)
     {
         $this->logger->setIdentifier(__METHOD__);
         $this->logger->debug('Controller.Success', $this->request->all());
@@ -666,6 +669,27 @@ class CheckoutController extends Controller
         $basket = $basketReopo->load();
         if (!$helper->isPayonePayment($basket->methodOfPaymentId)) {
             return $this->response->redirectTo('payone/error' . ShopHelper::getTrailingSlash());
+        }
+
+        /** @var PaymentHelper $paymentHelper */
+        $paymentHelper = pluginApp(PaymentHelper::class);
+        $payoneCCPaymentMethodId = $paymentHelper->getMopId(PayoneCCPaymentMethod::PAYMENT_CODE);
+
+        //only if cc with 3ds only in the cause of AUTH the payment should be set as approved
+        //for the preAuth there is an event procedure that will take care of this
+        if($basket->methodOfPaymentId == $payoneCCPaymentMethodId) {
+            $payment = $paymentCache->loadPayment($basket->methodOfPaymentId);
+
+            $paymentPropertyText = $paymentHelper->getPaymentPropertyValue(
+                $payment,
+                PaymentProperty::TYPE_PAYMENT_TEXT
+            );
+
+            $paymentPropertyText = json_decode($paymentPropertyText, true);
+            if (!empty($paymentPropertyText['Request type']) && $paymentPropertyText['Request type'] == 'Auth') {
+                $payment->status = Payment::STATUS_APPROVED;
+                $paymentRepositoryContract->updatePayment($payment);
+            }
         }
 
         $paymentCache->resetActiveBasketId();

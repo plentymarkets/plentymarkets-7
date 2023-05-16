@@ -4,6 +4,7 @@ namespace Payone\Services;
 
 use Payone\Adapter\Logger;
 use Payone\Helpers\PaymentHelper;
+use Payone\Methods\PayoneCCPaymentMethod;
 use Payone\Models\Api\AuthResponse;
 use Payone\Models\Api\Clearing\Bank;
 use Payone\Models\Api\Clearing\ClearingAbstract;
@@ -121,10 +122,12 @@ class PaymentCreation
 
         $payment->mopId = (int) $mopId;
         $payment->transactionType = Payment::TRANSACTION_TYPE_BOOKED_POSTING;
-        $payment->status = Payment::STATUS_APPROVED;
+
+        // for CC payment and redirect URL (3ds) we set the payment for awaiting approval
+        // the payment will be updated on the success page  and for the preAuth the payment will be updated in the event procedure
+        $payment->status =  ($response->getRedirecturl() !== '' && $paymentCode == PayoneCCPaymentMethod::PAYMENT_CODE) ? Payment::STATUS_AWAITING_APPROVAL :  Payment::STATUS_APPROVED;
 
         $payment->currency = $paymentData['basket']['currency'];
-
         $payment->amount = 0;
         $payment->unaccountable = 0;
 
@@ -166,8 +169,15 @@ class PaymentCreation
             PaymentProperty::TYPE_INVOICE_ADDRESS_ID,
             $basket->customerInvoiceAddressId);
 
+        /** @var SettingsService $settingsService */
+        $settingsService = pluginApp(SettingsService::class);
+        $authType = $settingsService->getPaymentSettingsValue('AuthType', $paymentCode);
+        if(!isset($authType) || $authType == -1) {
+            $authType = $settingsService->getSettingsValue('authType');
+        }
+
         $paymentText = [
-            'Request type' => 'PreAuth',
+            'Request type' => $authType == PaymentService::AUTH_TYPE_AUTH ? 'Auth' : 'PreAuth',
             'TransactionID' => $transactionID,
         ];
 
