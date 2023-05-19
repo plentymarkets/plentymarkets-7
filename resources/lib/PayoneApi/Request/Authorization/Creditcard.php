@@ -38,11 +38,6 @@ class Creditcard extends AuthorizationRequestAbstract
     private $errorurl;
 
     /**
-     * @var string|null
-     */
-    private $backurl;
-
-    /**
      * @param GenericAuthorizationRequest $authorizationRequest
      * @param RedirectUrls $urls
      * @param $pseudocardPan

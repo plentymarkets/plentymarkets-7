@@ -4,6 +4,7 @@
 
 ### Fixed
 - Notes on invoice documents are now printed in the appropriate language.
+- 3D secure workflow
 
 ## 2.5.3 (2022-10-27)
 
