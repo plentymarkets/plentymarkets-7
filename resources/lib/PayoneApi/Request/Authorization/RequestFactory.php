@@ -48,7 +48,9 @@ class RequestFactory implements RequestFactoryContract
                 return new Creditcard(
                     $genericAuthRequest,
                     self::createUrls($data['redirect']),
-                    $data['pseudocardpan']
+                    $data['pseudocardpan'],
+                    $data['successurl'] ?? '',
+                    $data['errorurl'] ?? ''
                 );
             case PaymentTypes::PAYONE_DIRECT_DEBIT:
                 $sepaMandateData = $data['sepaMandate'];

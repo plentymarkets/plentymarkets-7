@@ -4,6 +4,7 @@
 
 ### Behoben
 - Hinweistexte auf Rechnungsdokumenten werden nun in der entsprechenden Sprache aufgedruckt.
+- 3D-sicherer Workflow
 
 ## 2.5.3 (2022-10-27)
 

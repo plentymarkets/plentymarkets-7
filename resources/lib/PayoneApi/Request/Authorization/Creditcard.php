@@ -28,20 +28,34 @@ class Creditcard extends AuthorizationRequestAbstract
     private $urls;
 
     /**
-     * Creditcard constructor.
-     *
+     * @var string|null
+     */
+    private $successurl;
+
+    /**
+     * @var string|null
+     */
+    private $errorurl;
+
+    /**
      * @param GenericAuthorizationRequest $authorizationRequest
      * @param RedirectUrls $urls
      * @param $pseudocardPan
+     * @param $successurl
+     * @param $errorurl
      */
     public function __construct(
         GenericAuthorizationRequest $authorizationRequest,
         RedirectUrls $urls,
-        $pseudocardPan
+        $pseudocardPan,
+        $successurl = "",
+        $errorurl = ""
     ) {
         $this->authorizationRequest = $authorizationRequest;
         $this->pseudocardpan = $pseudocardPan;
         $this->urls = $urls;
+        $this->successurl = $successurl;
+        $this->errorurl = $errorurl;
     }
 
     /**
@@ -62,5 +76,21 @@ class Creditcard extends AuthorizationRequestAbstract
     public function getUrls()
     {
         return $this->urls;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSuccessurl(): ?string
+    {
+        return $this->successurl;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getErrorurl(): ?string
+    {
+        return $this->errorurl;
     }
 }
