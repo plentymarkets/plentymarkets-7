@@ -1,6 +1,6 @@
 # Release Notes für PAYONE
 
-## 2.6.0 (TBA)
+## 2.6.0 (2023-05-24)
 
 ### Behoben
 - Hinweistexte auf Rechnungsdokumenten werden nun in der entsprechenden Sprache aufgedruckt.
