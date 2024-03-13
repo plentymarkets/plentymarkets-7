@@ -34,10 +34,10 @@
     "Ceres":">=5.0.4"
   },
   "dependencies": {
-    "guzzlehttp/guzzle": "6.*",
-    "symfony/serializer": "3.2.7",
-    "symfony/property-access": "3.2.7",
-    "doctrine/common": "2.7.2",
+    "guzzlehttp/guzzle": "7.*",
+    "symfony/serializer": "6.0",
+    "symfony/property-access": "6.4",
+    "doctrine/common": "3.4",
     "viison/address-splitter": "0.3.4"
   },
   "serviceProvider": "Payone\\Providers\\PayoneServiceProvider",
