@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Payone\Assistants\SettingsHandlers;
-
 
 use Payone\Helpers\PaymentHelper;
 use Payone\Services\SettingsService;
@@ -12,11 +10,11 @@ use Plenty\Modules\Wizard\Contracts\WizardSettingsHandler;
 class AssistantSettingsHandler implements WizardSettingsHandler
 {
     /**
-     * @param array $parameter
+     * @param array $parameters
      * @return bool
      * @throws \Exception
      */
-    public function handle(array $parameter): bool
+    public function handle(array $parameters): bool
     {
         /** @var PluginSetRepositoryContract $pluginSetRepo */
         $pluginSetRepo = pluginApp(PluginSetRepositoryContract::class);
@@ -24,10 +22,10 @@ class AssistantSettingsHandler implements WizardSettingsHandler
         /** @var PaymentHelper $paymentHelper */
         $paymentHelper = pluginApp(PaymentHelper::class);
 
-        $clientId = $parameter['data']['clientId'];
+        $clientId = $parameters['data']['clientId'];
         $pluginSetId = $pluginSetRepo->getCurrentPluginSetId();
 
-        $data = $parameter['data'];
+        $data = $parameters['data'];
 
         $settings = [
             'mid' => $data['mid'] ?? '',

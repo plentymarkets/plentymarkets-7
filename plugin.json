@@ -43,7 +43,10 @@
   "serviceProvider": "Payone\\Providers\\PayoneServiceProvider",
   "runOnBuild": [
     "Payone\\Migrations\\CreatePaymentMethods3",
-    "Payone\\Migrations\\CreateSettingsTable"
+    "Payone\\Migrations\\CreateSettingsTable",
+    "Payone\\Migrations\\CreateSettingsBackupTable",
+    "Payone\\Migrations\\CleanupOfOrphansRows",
+    "Payone\\Migrations\\MigrateKeyToCredentialsTable"
   ],
   "dataProviders": [
     {

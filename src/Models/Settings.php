@@ -48,7 +48,7 @@ class Settings extends Model
         $this->createdAt = (string)Carbon::now();
 
         $this->value = [
-            'loginId' => $data['loginId'] ? '',
+            'loginId' => $data['loginId'] ? ''
 //            'mid' => $data['mid'],
 //            'portalId' => $data['portalId'],
 //            'aid' => $data['aid'],

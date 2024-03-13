@@ -58,15 +58,15 @@ class LoginRepository
      * @return mixed|void|null
      * @throws Throwable
      */
-    public function getValue($id, string $settingKey = '')
+    public function getValues($loginId, string $settingKey = '')
     {
         try {
             /** @var PaginatedResult $result */
-            $result = $this->authHelper->processUnguarded(function () use ($id) {
+            $result = $this->authHelper->processUnguarded(function () use ($loginId) {
                 return $this->credentialRepository->search(
                     [
                         'market' => 'Payone',
-                        'id' => $id
+                        'id' => $loginId
                     ]
                 );
             });
@@ -77,25 +77,23 @@ class LoginRepository
                 if (!empty($settingKey)) {
                     return $loginData[$settingKey] ?? null;
                 }
-                $login = pluginApp(Logins::class);
-                foreach ($loginData as $key => $value) {
-                    $login->{$key} = $value ?? "";
-                }
 
-                return $login;
+                return $loginData;
             }
         } catch (Exception $ex){
             $this->getLogger(__METHOD__)
-                ->error(PayoneHelper::PLUGIN_NAME . "::General.getCredentialsById::$id", $ex->getMessage());
+                ->error(PayoneHelper::PLUGIN_NAME . "::General.getCredentialsById::$loginId", $ex->getMessage());
         }
         return null;
     }
 
     /**
-     * @param array $data
-     * @return Model
+    * @param $loginId
+    * @param array $data
+    * @return false|mixed|null
+    * @throws Throwable
      */
-    public function updateValues($loginId, array $data): Model
+    public function updateValues($loginId, array $data)
     {
         if (isset($data['mid'])) {
             $credentialsData['data']['mid'] = $data['mid'];
@@ -179,23 +177,8 @@ class LoginRepository
                 ->error(PayoneHelper::PLUGIN_NAME . "::General.updateLoginError::{$loginId}", $e->getMessage());
             return false;
         }
-        $login = pluginApp(Logins::class);
-        foreach ($result->data as $key => $value) {
-            $login->{$key} = $value ?? "";
-        }
-    }
 
-    /**
-     * @param Settings $newModel
-     * @return Model
-     */
-    public function save(): Model
-    {
-        /** @var DataBase $database */
-        $database = pluginApp(DataBase::class);
-        $this->updatedAt = (string)Carbon::now();
-
-        return $database->save($this);
+        return $result->data;
     }
 
     /**

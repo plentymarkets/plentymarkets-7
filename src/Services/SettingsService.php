@@ -37,9 +37,10 @@ class SettingsService
     }
 
     /**
-     * @param int|null $clientId
-     * @param int|null $pluginSetId
-     * @return Settings|null
+    * @param int|null $clientId
+    * @param int|null $pluginSetId
+    * @return mixed|null
+    * @throws \Throwable
      */
     public function getSettings(int $clientId = null, int $pluginSetId = null)
     {
@@ -63,8 +64,13 @@ class SettingsService
                 ->limit(1)
                 ->get();
             if(is_array($setting) && $setting[0] instanceof Settings) {
-                $this->cachingRepository->add(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId, $setting[0], 1440); //One day
-                return $setting[0];
+                /**
+                 * @var LoginRepository $loginRepository
+                 */
+                $loginRepository = pluginApp(LoginRepository::class);
+                $credentialsSettings = $loginRepository->getValues($setting[0]->value['loginId']);
+                $this->cachingRepository->add(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId, $credentialsSettings, 1440); //One day
+                return $credentialsSettings;
             }
         }
 
@@ -81,8 +87,8 @@ class SettingsService
     {
         $settings = $this->getSettings($clientId, $pluginSetId);
         if(!is_null($settings)) {
-            if(isset($settings->value[$settingsKey])) {
-                return $settings->value[$settingsKey];
+            if(isset($settings[$settingsKey])) {
+                return $settings[$settingsKey];
             }
         }
         return null;
@@ -107,7 +113,8 @@ class SettingsService
     }
 
     /**
-     * @return array
+    * @return array
+    * @throws \Throwable
      */
     public function getAllAccountSettings(): array
     {
@@ -117,7 +124,10 @@ class SettingsService
         $accountSettings = [];
         /** @var Settings $setting */
         foreach ($settings as $setting) {
-            $accountSettings[$setting->clientId][$setting->pluginSetId] = $setting->value;
+            /** @var LoginRepository $loginRepository */
+            $loginRepository = pluginApp(LoginRepository::class);
+            $credentialsSettings = $loginRepository->getValues($setting->value['loginId']);
+            $accountSettings[$setting->clientId][$setting->pluginSetId] = $credentialsSettings;
         }
 
         return $accountSettings;
@@ -128,6 +138,7 @@ class SettingsService
      * @param int|null $clientId
      * @param int|null $pluginSetId
      * @return \Plenty\Modules\Plugin\DataBase\Contracts\Model|Settings
+     * @throws \Throwable
      */
     public function updateOrCreateSettings(array $data, int $clientId = null, int $pluginSetId = null)
     {
@@ -143,14 +154,21 @@ class SettingsService
         }
 
         $settings = $settings->updateValues($data);
+        /** @var LoginRepository $loginRepository */
+        $loginRepository = pluginApp(LoginRepository::class);
+        if (isset($settings->value['loginId'])) {
+            $credentialsSettings = $loginRepository->updateValues($settings->value['loginId'], $data);
+        }
+
         $this->cachingRepository->forget(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId);
-        return $settings;
+        return $credentialsSettings;
     }
 
     /**
      * @param int $clientId
      * @param int $pluginSetId
      * @return bool
+     * @throws \Throwable
      */
     public function deleteSettings(int $clientId, int $pluginSetId): bool
     {
@@ -174,7 +192,7 @@ class SettingsService
      * @param int $pluginSetId
      * @return Settings[]|array|\Plenty\Modules\Plugin\DataBase\Contracts\Model[]
      */
-    public function getAllSettingsForPluginSetId(int $pluginSetId)
+    public function getAllSettingsForPluginSetId(int $pluginSetId): array
     {
         return $this->database->query(Settings::class)->where('pluginSetId', $pluginSetId)->get();
     }

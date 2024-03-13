@@ -128,17 +128,17 @@ class AssistantDataSource extends BaseWizardDataSource
         $accountSettings = $settingsService->getSettings((int)$optionId, (int)$this->pluginSetRepositoryContract->getCurrentPluginSetId());
         $assistant['clientId'] = $optionId;
         if(!is_null($accountSettings)) {
-            $assistant['mid'] = $accountSettings->value['mid'] ?? "";
-            $assistant['portalId'] = $accountSettings->value['portalId'] ?? "";
-            $assistant['aid'] = $accountSettings->value['aid'] ?? "";
-            $assistant['key'] = $accountSettings->value['key'] ?? "";
-            $assistant['mode'] = $accountSettings->value['mode'] ?? 1;
-            $assistant['authType'] = $accountSettings->value['authType'] ?? 1;
-            $assistant['userId'] = $accountSettings->value['userId'] ?? 0;
+            $assistant['mid'] = $accountSettings['mid'] ?? "";
+            $assistant['portalId'] = $accountSettings['portalId'] ?? "";
+            $assistant['aid'] = $accountSettings['aid'] ?? "";
+            $assistant['key'] = $accountSettings['key'] ?? "";
+            $assistant['mode'] = $accountSettings['mode'] ?? 1;
+            $assistant['authType'] = $accountSettings['authType'] ?? 1;
+            $assistant['userId'] = $accountSettings['userId'] ?? 0;
 
             //Payone Payment Methods
-            if($accountSettings->value['payoneMethods']) {
-                foreach ($accountSettings->value['payoneMethods'] as $paymentCode => $value) {
+            if($accountSettings['payoneMethods']) {
+                foreach ($accountSettings['payoneMethods'] as $paymentCode => $value) {
                     $assistant[$paymentCode . 'Toggle'] = (bool)($value['active'] ?? false);
                     $assistant[$paymentCode . 'MinimumAmount'] = $value['MinimumAmount'] ?? 0;
                     $assistant[$paymentCode . 'MaximumAmount'] = $value['MaximumAmount'] ?? 2000;
