@@ -5,6 +5,7 @@ namespace Payone\Services;
 
 use Carbon\Carbon;
 use Payone\Models\Settings;
+use Payone\Repositories\LoginRepository;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
 use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
 use Plenty\Plugin\Application;
@@ -157,7 +158,13 @@ class SettingsService
 
         if ($settings instanceof Settings) {
             $this->cachingRepository->forget(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId);
-            return $this->database->delete($settings);
+            $settingsDeleted = $this->database->delete($settings);
+            if ($settingsDeleted) {
+                /** @var LoginRepository $loginRepository */
+                $loginRepository = pluginApp(LoginRepository::class);
+
+                return $loginRepository->delete($settings->value['loginId']);
+            }
         }
 
         return false;
