@@ -42,7 +42,7 @@ class LoginRepository
         $credentialsData['environment'] = 'production';
         $credentialsData['market'] = PayoneHelper::PLUGIN_NAME;
         try {
-            return $this->authHelper->processUnguarded(function () use ($data) {
+            return $this->authHelper->processUnguarded(function () use ($credentialsData) {
                 return $this->credentialRepository->create($credentialsData);
             });
         } catch (Exception $e) {
