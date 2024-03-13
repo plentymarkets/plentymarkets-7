@@ -48,29 +48,7 @@ class Settings extends Model
         $this->createdAt = (string)Carbon::now();
 
         $this->value = [
-            'loginId' => $data['loginId'] ? ''
-//            'mid' => $data['mid'],
-//            'portalId' => $data['portalId'],
-//            'aid' => $data['aid'],
-//            'key' => $data['key'],
-//            'mode' => $data['mode'],
-//            'authType' => $data['authType'],
-//            'userId' => $data['userId'],
-//            'PAYONE_PAYONE_INVOICE' => $data['PAYONE_PAYONE_INVOICE'],
-//            'PAYONE_PAYONE_PAYDIREKT' => $data['PAYONE_PAYONE_PAYDIREKT'],
-//            'PAYONE_PAYONE_PAYOLUTION_INSTALLMENT' => $data['PAYONE_PAYONE_PAYOLUTION_INSTALLMENT'],
-//            'PAYONE_PAYONE_PAY_PAL' => $data['PAYONE_PAYONE_PAY_PAL'],
-//            'PAYONE_PAYONE_RATEPAY_INSTALLMENT' => $data['PAYONE_PAYONE_RATEPAY_INSTALLMENT'],
-//            'PAYONE_PAYONE_SOFORT' => $data['PAYONE_PAYONE_SOFORT'],
-//            'PAYONE_PAYONE_CASH_ON_DELIVERY' => $data['PAYONE_PAYONE_CASH_ON_DELIVERY'],
-//            'PAYONE_PAYONE_PRE_PAYMENT' => $data['PAYONE_PAYONE_PRE_PAYMENT'],
-//            'PAYONE_PAYONE_CREDIT_CARD' => $data['PAYONE_PAYONE_CREDIT_CARD'],
-//            'PAYONE_PAYONE_DIRECT_DEBIT' => $data['PAYONE_PAYONE_DIRECT_DEBIT'],
-//            'PAYONE_PAYONE_INVOICE_SECURE' => $data['PAYONE_PAYONE_INVOICE_SECURE'],
-//            'PAYONE_PAYONE_KLARNA_DIRECT_BANK' => $data['PAYONE_PAYONE_KLARNA_DIRECT_BANK'],
-//            'PAYONE_PAYONE_KLARNA_DIRECT_DEBIT' => $data['PAYONE_PAYONE_KLARNA_DIRECT_DEBIT'],
-//            'PAYONE_PAYONE_KLARNA_INSTALLMENTS' => $data['PAYONE_PAYONE_KLARNA_INSTALLMENTS'],
-//            'PAYONE_PAYONE_KLARNA_INVOICE' => $data['PAYONE_PAYONE_KLARNA_INVOICE']
+            'loginId' => $data['loginId'] ?? ''
         ];
 
         return $this->save();
