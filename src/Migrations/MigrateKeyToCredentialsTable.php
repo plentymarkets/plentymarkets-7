@@ -15,16 +15,14 @@ class MigrateKeyToCredentialsTable
 
         /** @var Settings[] $allSettings */
         $allSettings = $database->query(Settings::class)->get();
-
+        /** @var LoginRepository $loginRepository */
         $loginRepository = pluginApp(LoginRepository::class);
 
         foreach ($allSettings as $setting) {
             $newLogin = $loginRepository->create($setting->value);
-            if ($newLogin instanceof Credentials) {
                 unset($setting->value);
                 $setting->value['loginId'] = $newLogin->id;
                 $setting->save();
-            }
         }
     }
 }
