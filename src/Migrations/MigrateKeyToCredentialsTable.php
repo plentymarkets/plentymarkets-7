@@ -37,7 +37,6 @@ class MigrateKeyToCredentialsTable
                     1440
                 ); //One day
 
-                unset($setting->value);
                 $setting->value['loginId'] = $credentialsSettings->id;
                 $setting->save();
             } catch (\Exception $ex) {
