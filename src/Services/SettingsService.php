@@ -4,15 +4,18 @@ namespace Payone\Services;
 
 
 use Carbon\Carbon;
+use Payone\Helpers\PayoneHelper;
 use Payone\Models\Settings;
 use Payone\Repositories\LoginRepository;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
 use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
 use Plenty\Plugin\Application;
 use Plenty\Plugin\CachingRepository;
+use Plenty\Plugin\Log\Loggable;
 
 class SettingsService
 {
+    use Loggable
     const CACHING_KEY_SETTINGS = 'payone_plugin_settings';
 
     /**
@@ -69,12 +72,14 @@ class SettingsService
                  */
                 $loginRepository = pluginApp(LoginRepository::class);
                 $credentialsSettings = $loginRepository->getValues($setting[0]->value['loginId']);
+                $this->getLogger(__METHOD__)->debug(PayoneHelper::PLUGIN_NAME.'::General.objectData', $credentialsSettings);
                 $this->cachingRepository->add(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId, $credentialsSettings, 1440); //One day
                 return $credentialsSettings;
             }
         }
-
-        return $this->cachingRepository->get(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId, null);
+        $credentialsSettings = $this->cachingRepository->get(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId, null);
+        $this->getLogger(__METHOD__)->debug(PayoneHelper::PLUGIN_NAME.'::General.objectData', $credentialsSettings);
+        return $credentialsSettings;
     }
 
     /**
@@ -127,6 +132,7 @@ class SettingsService
             /** @var LoginRepository $loginRepository */
             $loginRepository = pluginApp(LoginRepository::class);
             $credentialsSettings = $loginRepository->getValues($setting->value['loginId']);
+            $this->getLogger(__METHOD__)->debug(PayoneHelper::PLUGIN_NAME.'::General.objectData', $credentialsSettings);
             $accountSettings[$setting->clientId][$setting->pluginSetId] = $credentialsSettings;
         }
 
