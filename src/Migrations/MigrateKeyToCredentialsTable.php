@@ -37,6 +37,9 @@ class MigrateKeyToCredentialsTable
                     1440
                 ); //One day
 
+                $cachingSettings = $cachingRepository->get( SettingsService::CACHING_KEY_SETTINGS . '_' . $setting->clientId . '_' . $setting->pluginSetId);
+                $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $cachingSettings);
+                $setting->value = null;
                 $setting->value['loginId'] = $credentialsSettings->id;
                 $setting->save();
             } catch (\Exception $ex) {
