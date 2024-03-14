@@ -15,7 +15,7 @@ use Plenty\Plugin\Log\Loggable;
 
 class SettingsService
 {
-    use Loggable
+    use Loggable;
     const CACHING_KEY_SETTINGS = 'payone_plugin_settings';
 
     /**
