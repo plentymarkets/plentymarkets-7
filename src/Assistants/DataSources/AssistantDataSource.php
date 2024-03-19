@@ -84,6 +84,7 @@ class AssistantDataSource extends BaseWizardDataSource
 
     /**
      * @return array
+     * @throws \Throwable
      */
     public function get(): array
     {
@@ -134,7 +135,7 @@ class AssistantDataSource extends BaseWizardDataSource
             $assistant['mid'] = $accountSettings['mid'] ?? "";
             $assistant['portalId'] = $accountSettings['portalId'] ?? "";
             $assistant['aid'] = $accountSettings['aid'] ?? "";
-            $assistant['key'] = $accountSettings['key'] ?? "";
+            $assistant['key'] = "";
             $assistant['mode'] = $accountSettings['mode'] ?? 1;
             $assistant['authType'] = $accountSettings['authType'] ?? 1;
             $assistant['userId'] = $accountSettings['userId'] ?? 0;
