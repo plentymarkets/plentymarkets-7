@@ -5,6 +5,7 @@ namespace Payone\Assistants;
 use Payone\Assistants\DataSources\AssistantDataSource;
 use Payone\Assistants\SettingsHandlers\AssistantSettingsHandler;
 use Payone\Assistants\Validators\PayoneCredentialsValidator;
+use Payone\Assistants\Validators\PayoneInvoiceSecureCredentialsValidator;
 use Payone\Helpers\PaymentHelper;
 use Payone\Methods\PayoneAmazonPayPaymentMethod;
 use Payone\Methods\PayoneCCPaymentMethod;
@@ -261,6 +262,7 @@ class PayoneAssistant extends WizardProvider
         $config['steps']['payoneProductsStep'] = [
             'title' => 'Assistant.titlePayoneProductsStep',
             'description' => 'Assistant.descriptionPayoneProductsStep',
+            'validationClass' => PayoneInvoiceSecureCredentialsValidator::class,
             'showFullDescription' => true,
             'sections' => []
         ];

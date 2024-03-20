@@ -2,6 +2,7 @@
 
 namespace Payone\Assistants\DataSources;
 
+use Payone\Repositories\LoginRepository;
 use Payone\Services\SettingsService;
 use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
 use Plenty\Modules\Wizard\Models\WizardData;
@@ -84,7 +85,6 @@ class AssistantDataSource extends BaseWizardDataSource
 
     /**
      * @return array
-     * @throws \Throwable
      */
     public function get(): array
     {
@@ -129,20 +129,21 @@ class AssistantDataSource extends BaseWizardDataSource
             (int)$optionId,
             (int)$this->pluginSetRepositoryContract->getCurrentPluginSetId()
         );
-        $assistant['clientId'] = $optionId;
 
+        $assistant['clientId'] = $optionId;
         if (!is_null($accountSettings)) {
-            $assistant['mid'] = $accountSettings['mid'] ?? "";
-            $assistant['portalId'] = $accountSettings['portalId'] ?? "";
-            $assistant['aid'] = $accountSettings['aid'] ?? "";
+            $assistant['loginId'] = $accountSettings->value['loginId'] ?? '';
+            $assistant['mid'] = $accountSettings->value['mid'] ?? "";
+            $assistant['portalId'] = $accountSettings->value['portalId'] ?? "";
+            $assistant['aid'] = $accountSettings->value['aid'] ?? "";
             $assistant['key'] = "";
-            $assistant['mode'] = $accountSettings['mode'] ?? 1;
-            $assistant['authType'] = $accountSettings['authType'] ?? 1;
-            $assistant['userId'] = $accountSettings['userId'] ?? 0;
+            $assistant['mode'] = $accountSettings->value['mode'] ?? 1;
+            $assistant['authType'] = $accountSettings->value['authType'] ?? 1;
+            $assistant['userId'] = $accountSettings->value['userId'] ?? 0;
 
             //Payone Payment Methods
-            if ($accountSettings['payoneMethods']) {
-                foreach ($accountSettings['payoneMethods'] as $paymentCode => $value) {
+            if ($accountSettings->value['payoneMethods']) {
+                foreach ($accountSettings->value['payoneMethods'] as $paymentCode => $value) {
                     $assistant[$paymentCode . 'Toggle'] = (bool)($value['active'] ?? false);
                     $assistant[$paymentCode . 'MinimumAmount'] = $value['MinimumAmount'] ?? 0;
                     $assistant[$paymentCode . 'MaximumAmount'] = $value['MaximumAmount'] ?? 2000;
@@ -155,7 +156,7 @@ class AssistantDataSource extends BaseWizardDataSource
                     switch ($paymentCode) {
                         case 'PAYONE_PAYONE_INVOICE_SECURE':
                             $assistant[$paymentCode . 'portalId'] = $value['portalId'] ?? '';
-                            $assistant[$paymentCode . 'key'] = $value['key'] ?? '';
+                            $assistant[$paymentCode . 'key'] = '';
                             break;
                         case 'PAYONE_PAYONE_CREDIT_CARD':
                             $assistant[$paymentCode . 'minExpireTime'] = (int)($value['minExpireTime'] ?? 30);

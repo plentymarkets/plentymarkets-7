@@ -3,19 +3,15 @@
 namespace Payone\Services;
 
 use Carbon\Carbon;
-use Payone\Helpers\PayoneHelper;
 use Payone\Models\Settings;
 use Payone\Repositories\LoginRepository;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
 use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
 use Plenty\Plugin\Application;
 use Plenty\Plugin\CachingRepository;
-use Plenty\Plugin\Log\Loggable;
 
 class SettingsService
 {
-    use Loggable;
-
     const CACHING_KEY_SETTINGS = 'payone_plugin_settings';
 
     /**
@@ -71,8 +67,8 @@ class SettingsService
     {
         $settings = $this->getSettings($clientId, $pluginSetId);
         if (!is_null($settings)) {
-            if (isset($settings[$settingsKey])) {
-                return $settings[$settingsKey];
+            if (isset($settings->value[$settingsKey])) {
+                return $settings->value[$settingsKey];
             }
         }
         return null;
@@ -81,8 +77,7 @@ class SettingsService
     /**
      * @param int|null $clientId
      * @param int|null $pluginSetId
-     * @return mixed|null
-     * @throws \Throwable
+     * @return Settings|null
      */
     public function getSettings(int $clientId = null, int $pluginSetId = null)
     {
@@ -106,34 +101,20 @@ class SettingsService
                 ->limit(1)
                 ->get();
             if (is_array($setting) && $setting[0] instanceof Settings) {
-                /**
-                 * @var LoginRepository $loginRepository
-                 */
-                $loginRepository = pluginApp(LoginRepository::class);
-                $credentialsSettings = $loginRepository->getValues($setting[0]->value['loginId']);
-                $this->getLogger(__METHOD__)->debug(
-                    PayoneHelper::PLUGIN_NAME . '::General.objectData',
-                    $credentialsSettings
-                );
                 $this->cachingRepository->add(
                     self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId,
-                    $credentialsSettings,
+                    $setting[0],
                     1440
                 ); //One day
-                return $credentialsSettings;
+                return $setting[0];
             }
         }
-        $credentialsSettings = $this->cachingRepository->get(
-            self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId,
-            null
-        );
-        $this->getLogger(__METHOD__)->debug(PayoneHelper::PLUGIN_NAME . '::General.objectData', $credentialsSettings);
-        return $credentialsSettings;
+
+        return $this->cachingRepository->get(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId, null);
     }
 
     /**
      * @return array
-     * @throws \Throwable
      */
     public function getAllAccountSettings(): array
     {
@@ -143,14 +124,7 @@ class SettingsService
         $accountSettings = [];
         /** @var Settings $setting */
         foreach ($settings as $setting) {
-            /** @var LoginRepository $loginRepository */
-            $loginRepository = pluginApp(LoginRepository::class);
-            $credentialsSettings = $loginRepository->getValues($setting->value['loginId']);
-            $this->getLogger(__METHOD__)->debug(
-                PayoneHelper::PLUGIN_NAME . '::General.objectData',
-                $credentialsSettings
-            );
-            $accountSettings[$setting->clientId][$setting->pluginSetId] = $credentialsSettings;
+            $accountSettings[$setting->clientId][$setting->pluginSetId] = $setting->value;
         }
 
         return $accountSettings;
@@ -161,7 +135,6 @@ class SettingsService
      * @param int|null $clientId
      * @param int|null $pluginSetId
      * @return \Plenty\Modules\Plugin\DataBase\Contracts\Model|Settings
-     * @throws \Throwable
      */
     public function updateOrCreateSettings(array $data, int $clientId = null, int $pluginSetId = null)
     {
@@ -177,38 +150,28 @@ class SettingsService
         }
 
         $settings = $settings->updateValues($data);
-        /** @var LoginRepository $loginRepository */
-        $loginRepository = pluginApp(LoginRepository::class);
-        if (isset($settings->value['loginId'])) {
-            $credentialsSettings = $loginRepository->updateValues($settings->value['loginId'], $data);
-        }
-
         $this->cachingRepository->forget(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId);
-        return $credentialsSettings;
+        return $settings;
     }
 
     /**
      * @param int $clientId
      * @param int $pluginSetId
      * @return bool
-     * @throws \Throwable
      */
     public function deleteSettings(int $clientId, int $pluginSetId): bool
     {
         $settings = $this->getSettings($clientId, $pluginSetId);
-        $this->cachingRepository->forget(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId);
-        /** @var Settings $setting */
-        $setting = $this->database->query(Settings::class)
-            ->where('clientId', '=', $clientId)
-            ->where('pluginSetId', '=', $pluginSetId)
-            ->limit(1)
-            ->get();
-        $settingDeleted = $this->database->delete($setting);
-        if ($settingDeleted) {
-            /** @var LoginRepository $loginRepository */
-            $loginRepository = pluginApp(LoginRepository::class);
 
-            return $loginRepository->delete($settings->value['loginId']);
+        if ($settings instanceof Settings) {
+            $this->cachingRepository->forget(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId);
+            $settingsDeleted = $this->database->delete($settings);
+            if ($settingsDeleted) {
+                /** @var LoginRepository $loginRepository */
+                $loginRepository = pluginApp(LoginRepository::class);
+
+                return $loginRepository->delete($settings->value['loginId']);
+            }
         }
 
         return false;
@@ -218,7 +181,7 @@ class SettingsService
      * @param int $pluginSetId
      * @return Settings[]|array|\Plenty\Modules\Plugin\DataBase\Contracts\Model[]
      */
-    public function getAllSettingsForPluginSetId(int $pluginSetId): array
+    public function getAllSettingsForPluginSetId(int $pluginSetId)
     {
         return $this->database->query(Settings::class)->where('pluginSetId', $pluginSetId)->get();
     }

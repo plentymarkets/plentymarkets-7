@@ -5,11 +5,11 @@ namespace Payone\Assistants\Validators;
 use Illuminate\Support\MessageBag;
 use Payone\Helpers\PayoneHelper;
 use Payone\Services\SettingsService;
-use Plenty\Exceptions\ValidationException;
 use Plenty\Plugin\Translation\Translator;
 use Plenty\Validation\Validator;
+use Plenty\Exceptions\ValidationException;
 
-class PayoneCredentialsValidator extends Validator
+class PayoneInvoiceSecureCredentialsValidator extends Validator
 {
     /**
      * @param array $data
@@ -17,14 +17,12 @@ class PayoneCredentialsValidator extends Validator
      */
     public static function validateOrFail(array $data): void
     {
+        $paymentCode = 'PAYONE_PAYONE_INVOICE_SECURE';
         /** @var Translator $translator */
         $translator = pluginApp(Translator::class);
 
-        $loginMid = $data['mid'];
-        $loginPortalId = $data['portalId'];
-        $loginAid = $data['aid'];
-        $loginKey = $data['key'];
-
+        $loginKey = $data[$paymentCode . 'key'];
+        $loginPortalId = $data[$paymentCode . 'portalId'];
         $validationMessage = '';
 
         if ($data['loginId'] && empty($loginKey)) {
@@ -32,15 +30,11 @@ class PayoneCredentialsValidator extends Validator
             $settingsService = pluginApp(SettingsService::class);
             $accountSettings = $settingsService->getSettings();
 
-            $mid = $accountSettings->value['mid'];
-            $portalId = $accountSettings->value['portalId'];
-            $aid = $accountSettings->value['aid'];
-            if ($loginMid != $mid || $loginPortalId != $portalId || $loginAid != $aid) {
+            $portalId = $accountSettings->value[$paymentCode]['portalId'];
+            if ($loginPortalId != $portalId) {
                 $key = PayoneHelper::PLUGIN_NAME . "::Assistant.usernameWithEmptyPasswordError";
                 $validationMessage .= $translator->trans($key, [
-                    'mid' => $mid,
                     'portalId' => $portalId,
-                    'aid' => $aid
                 ]);
                 self::returnMessage($validationMessage);
             }
@@ -49,9 +43,7 @@ class PayoneCredentialsValidator extends Validator
         if (empty($data['loginId']) && empty($loginKey)) {
             $key = PayoneHelper::PLUGIN_NAME . "::Assistant.usernameWithEmptyPasswordError";
             $validationMessage .= $translator->trans($key, [
-                'mid' => $mid,
                 'portalId' => $portalId,
-                'aid' => $aid
             ]);
             self::returnMessage($key, $validationMessage);
         }
