@@ -2,6 +2,7 @@
 
 namespace Payone\Migrations;
 
+use Payone\Models\Logins;
 use Payone\Models\Settings;
 use Payone\Repositories\LoginRepository;
 use Payone\Services\SettingsService;
@@ -26,20 +27,13 @@ class MigrateKeyToCredentialsTable
 
         foreach ($allSettings as $setting) {
             try {
-                $credentialsSettings = $loginRepository->create($setting->value);
-                $cachingRepository->forget(
-                    SettingsService::CACHING_KEY_SETTINGS . '_' . $setting->clientId . '_' . $setting->pluginSetId
-                );
-                unset($credentialsSettings->data['key'], $credentialsSettings->data['PAYONE_PAYONE_INVOICE_SECURE']);
-                $cachingRepository->add(
-                    SettingsService::CACHING_KEY_SETTINGS . '_' . $setting->clientId . '_' . $setting->pluginSetId,
-                    $credentialsSettings,
-                    1440
-                ); //One day
+                $credentialData = pluginApp(Logins::class);
+                $credentialData->key = $setting->value['key'];
+                $credentialData->invoiceSecureKey = $setting->value['PAYONE_PAYONE_INVOICE_SECURE']['key'];
+                $credentialsSettings = $loginRepository->save($credentialData);
 
-                $cachingSettings = $cachingRepository->get( SettingsService::CACHING_KEY_SETTINGS . '_' . $setting->clientId . '_' . $setting->pluginSetId);
-                $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $cachingSettings);
-                $setting->value = null;
+                unset($setting->value['key'], $setting->value['PAYONE_PAYONE_INVOICE_SECURE']['key']);
+
                 $setting->value['loginId'] = $credentialsSettings->id;
                 $setting->save();
             } catch (\Exception $ex) {
