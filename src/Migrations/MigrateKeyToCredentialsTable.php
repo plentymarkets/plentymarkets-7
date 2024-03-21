@@ -5,9 +5,7 @@ namespace Payone\Migrations;
 use Payone\Models\Logins;
 use Payone\Models\Settings;
 use Payone\Repositories\LoginRepository;
-use Payone\Services\SettingsService;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
-use Plenty\Plugin\CachingRepository;
 use Plenty\Plugin\Log\Loggable;
 
 class MigrateKeyToCredentialsTable
@@ -16,7 +14,6 @@ class MigrateKeyToCredentialsTable
 
     public function run()
     {
-        $cachingRepository = pluginApp(CachingRepository::class);
         $database = pluginApp(DataBase::class);
 
         /** @var Settings[] $allSettings */
