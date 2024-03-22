@@ -18,15 +18,20 @@ class MigrateKeyToCredentialsTable
 
         /** @var Settings[] $allSettings */
         $allSettings = $database->query(Settings::class)->get();
-        $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $allSettings);
         /** @var LoginRepository $loginRepository */
         $loginRepository = pluginApp(LoginRepository::class);
 
         foreach ($allSettings as $setting) {
             try {
-                $credentialData = pluginApp(Logins::class);
-                $credentialData->key = $setting->value['key'];
-                $credentialData->invoiceSecureKey = $setting->value['PAYONE_PAYONE_INVOICE_SECURE']['key'];
+                $credentialData = pluginApp(
+                    Logins::class,
+                    [
+                        null,
+                        $setting->value['key'],
+                        $setting->value['PAYONE_PAYONE_INVOICE_SECURE']['key']
+                    ]
+                );
+
                 $credentialsSettings = $loginRepository->save($credentialData);
 
                 unset($setting->value['key'], $setting->value['PAYONE_PAYONE_INVOICE_SECURE']['key']);

@@ -10,10 +10,10 @@ class Logins
 
     /**
      * @param int|null $id
-     * @param $key
-     * @param $invoiceSecureKey
+     * @param string $key
+     * @param string $invoiceSecureKey
      */
-    public function __construct(?int $id, $key, $invoiceSecureKey)
+    public function __construct(int $id = null, string $key = '', $invoiceSecureKey = '')
     {
         $this->id = $id;
         $this->key = $key;
