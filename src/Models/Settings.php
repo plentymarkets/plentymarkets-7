@@ -6,6 +6,7 @@ namespace Payone\Models;
 use Carbon\Carbon;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
 use Plenty\Modules\Plugin\DataBase\Contracts\Model;
+use Plenty\Plugin\Log\Loggable;
 
 /**
  * Class Settings
@@ -22,6 +23,7 @@ use Plenty\Modules\Plugin\DataBase\Contracts\Model;
  */
 class Settings extends Model
 {
+    use Loggable;
     public $id;
     public $clientId;
     public $pluginSetId;
@@ -95,6 +97,7 @@ class Settings extends Model
      */
     public function updateValues(array $data): Model
     {
+        $this->getLogger(__METHOD__)->debug('Payone', $data);
         if (isset($data['loginId'])) {
             $this->value['loginId'] = $data['loginId'];
         }
@@ -147,7 +150,7 @@ class Settings extends Model
             $this->value['PAYONE_PAYONE_DIRECT_DEBIT'] = $data['PAYONE_PAYONE_DIRECT_DEBIT'];
         }
         if (isset($data['PAYONE_PAYONE_INVOICE_SECURE'])) {
-            $this->value['PAYONE_PAYONE_INVOICE_SECURE']['portalId'] = $data['PAYONE_PAYONE_INVOICE_SECURE']['portalId'];
+            $this->value['PAYONE_PAYONE_INVOICE_SECURE'] = $data['PAYONE_PAYONE_INVOICE_SECURE'];
         }
         if (isset($data['PAYONE_PAYONE_AMAZON_PAY'])) {
             $this->value['PAYONE_PAYONE_AMAZON_PAY'] = $data['PAYONE_PAYONE_AMAZON_PAY'];
