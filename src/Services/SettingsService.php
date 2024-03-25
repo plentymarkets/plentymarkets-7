@@ -3,6 +3,7 @@
 namespace Payone\Services;
 
 use Carbon\Carbon;
+use Payone\Methods\PayoneInvoiceSecurePaymentMethod;
 use Payone\Models\Settings;
 use Payone\Repositories\LoginRepository;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
@@ -49,6 +50,17 @@ class SettingsService
         int $pluginSetId = null
     ) {
         $settings = $this->getSettingsValue('payoneMethods', $clientId, $pluginSetId);
+        // get key for Invoice secure
+        if ($paymentKey == PayoneInvoiceSecurePaymentMethod::PAYMENT_CODE && $settingsKey == 'key') {
+            try {
+                /** @var LoginRepository $loginRepository */
+                $loginRepository = pluginApp(LoginRepository::class);
+                $loginCredentials = $loginRepository->getById($settings->value['loginId']);
+                return $loginCredentials->invoiceSecureKey;
+            } catch (\Throwable $ex) {
+                return null;
+            }
+        }
         if (!is_null($settings)) {
             if (isset($settings[$paymentKey][$settingsKey])) {
                 return $settings[$paymentKey][$settingsKey];

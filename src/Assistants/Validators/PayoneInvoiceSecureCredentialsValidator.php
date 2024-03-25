@@ -4,6 +4,7 @@ namespace Payone\Assistants\Validators;
 
 use Illuminate\Support\MessageBag;
 use Payone\Helpers\PayoneHelper;
+use Payone\Methods\PayoneInvoiceSecurePaymentMethod;
 use Payone\Services\SettingsService;
 use Plenty\Exceptions\ValidationException;
 use Plenty\Plugin\Translation\Translator;
@@ -17,7 +18,7 @@ class PayoneInvoiceSecureCredentialsValidator extends Validator
      */
     public static function validateOrFail(array $data): void
     {
-        $paymentCode = 'PAYONE_PAYONE_INVOICE_SECURE';
+        $paymentCode = PayoneInvoiceSecurePaymentMethod::PAYMENT_CODE;
         /** @var Translator $translator */
         $translator = pluginApp(Translator::class);
 

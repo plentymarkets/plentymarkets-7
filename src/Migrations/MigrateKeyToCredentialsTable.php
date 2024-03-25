@@ -3,6 +3,7 @@
 namespace Payone\Migrations;
 
 use Exception;
+use Payone\Methods\PayoneInvoiceSecurePaymentMethod;
 use Payone\Models\Logins;
 use Payone\Models\Settings;
 use Payone\Repositories\LoginRepository;
@@ -32,13 +33,13 @@ class MigrateKeyToCredentialsTable
                     [
                         null,
                         $setting->value['key'],
-                        $setting->value['payoneMethods']['PAYONE_PAYONE_INVOICE_SECURE']['key']
+                        $setting->value['payoneMethods'][PayoneInvoiceSecurePaymentMethod::PAYMENT_CODE]['key']
                     ]
                 );
 
                 $credentialsSettings = $loginRepository->save($credentialData);
 
-                unset($setting->value['key'], $setting->value['payoneMethods']['PAYONE_PAYONE_INVOICE_SECURE']['key']);
+                unset($setting->value['key'], $setting->value['payoneMethods'][PayoneInvoiceSecurePaymentMethod::PAYMENT_CODE]['key']);
 
                 $setting->value['loginId'] = $credentialsSettings->id;
                 $setting->save();

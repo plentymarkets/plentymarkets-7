@@ -2,6 +2,7 @@
 
 namespace Payone\Models\PaymentConfig;
 
+use Payone\Repositories\LoginRepository;
 use Payone\Services\SettingsService;
 
 class ApiCredentials
@@ -25,18 +26,18 @@ class ApiCredentials
      * @param string|null $paymentCode
      * @param int|null $clientId
      * @param int|null $pluginSetId
-     * @return string
+     * @return array
      */
-    public function getKey(string $paymentCode = null, int $clientId = null, int $pluginSetId = null): string
+    public function getApiCredentials(string $paymentCode = null, int $clientId = null, int $pluginSetId = null): array
     {
-        if ($paymentCode !== null) {
-            $key = $this->settingsService->getPaymentSettingsValue('key', $paymentCode, $clientId, $pluginSetId);
-            if (!empty($key)) {
-                return $key;
-            }
-        }
-        
-        return $this->settingsService->getSettingsValue('key', $clientId, $pluginSetId);
+        $apiContextParams = [];
+        $apiContextParams['aid'] = $this->getAid($clientId, $pluginSetId);
+        $apiContextParams['mid'] = $this->getMid($clientId, $pluginSetId);
+        $apiContextParams['portalid'] = $this->getPortalid($paymentCode, $clientId, $pluginSetId);
+        $apiContextParams['key'] = $this->getKey($paymentCode, $clientId, $pluginSetId);
+        $apiContextParams['mode'] = $this->getMode($clientId, $pluginSetId);
+
+        return $apiContextParams;
     }
 
     /**
@@ -68,13 +69,43 @@ class ApiCredentials
     public function getPortalid(string $paymentCode = null, int $clientId = null, int $pluginSetId = null): string
     {
         if ($paymentCode !== null) {
-            $portalId = $this->settingsService->getPaymentSettingsValue('portalId', $paymentCode, $clientId, $pluginSetId);
+            $portalId = $this->settingsService->getPaymentSettingsValue(
+                'portalId',
+                $paymentCode,
+                $clientId,
+                $pluginSetId
+            );
             if (!empty($portalId)) {
                 return $portalId;
             }
         }
-        
+
         return $this->settingsService->getSettingsValue('portalId');
+    }
+
+    /**
+     * @param string|null $paymentCode
+     * @param int|null $clientId
+     * @param int|null $pluginSetId
+     * @return string
+     */
+    public function getKey(string $paymentCode = null, int $clientId = null, int $pluginSetId = null): string
+    {
+        if ($paymentCode !== null) {
+            $key = $this->settingsService->getPaymentSettingsValue('key', $paymentCode, $clientId, $pluginSetId);
+            if (!empty($key)) {
+                return $key;
+            }
+        }
+
+        $settings = $this->settingsService->getSettings($clientId, $pluginSetId);
+        if (!is_null($settings) && isset($settings->value['loginId'])) {
+            /** @var LoginRepository $loginRepository */
+            $loginRepository = pluginApp(LoginRepository::class);
+            $loginCredentials = $loginRepository->getById($settings->value['loginId']);
+            return $loginCredentials['key'];
+        }
+        return '';
     }
 
     /**
@@ -86,23 +117,5 @@ class ApiCredentials
     {
         $mode = $this->settingsService->getSettingsValue('mode', $clientId, $pluginSetId);
         return ($mode == 1) ? 'live' : 'test';
-    }
-
-    /**
-     * @param string|null $paymentCode
-     * @param int|null $clientId
-     * @param int|null $pluginSetId
-     * @return array
-     */
-    public function getApiCredentials(string $paymentCode = null, int $clientId = null, int $pluginSetId = null): array
-    {
-        $apiContextParams = [];
-        $apiContextParams['aid'] = $this->getAid($clientId, $pluginSetId);
-        $apiContextParams['mid'] = $this->getMid($clientId, $pluginSetId);
-        $apiContextParams['portalid'] = $this->getPortalid($paymentCode, $clientId, $pluginSetId);
-        $apiContextParams['key'] = $this->getKey($paymentCode, $clientId, $pluginSetId);
-        $apiContextParams['mode'] = $this->getMode($clientId, $pluginSetId);
-
-        return $apiContextParams;
     }
 }
