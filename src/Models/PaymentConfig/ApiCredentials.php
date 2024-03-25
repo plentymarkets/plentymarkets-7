@@ -106,7 +106,7 @@ class ApiCredentials
             /** @var LoginRepository $loginRepository */
             $loginRepository = pluginApp(LoginRepository::class);
             $loginCredentials = $loginRepository->getById($settings->value['loginId']);
-            return $loginCredentials['key'];
+            return $loginCredentials->key;
         }
         return '';
     }

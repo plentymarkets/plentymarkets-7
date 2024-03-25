@@ -4,8 +4,8 @@ namespace Payone\Assistants\SettingsHandlers;
 
 use Exception;
 use Payone\Helpers\PaymentHelper;
-use Payone\Helpers\PayoneHelper;
 use Payone\Models\Logins;
+use Payone\PluginConstants;
 use Payone\Repositories\LoginRepository;
 use Payone\Services\SettingsService;
 use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
@@ -106,7 +106,7 @@ class AssistantSettingsHandler implements WizardSettingsHandler
             $settingsService = pluginApp(SettingsService::class);
             $settingsService->updateOrCreateSettings($settings, $clientId, $pluginSetId);
         } catch (Throwable $ex) {
-            $this->getLogger(__METHOD__)->debug(PayoneHelper::PLUGIN_NAME . '::General.saveSettingsError', [
+            $this->getLogger(__METHOD__)->debug(PluginConstants::NAME . '::General.saveSettingsError', [
                 'error' => $ex->getMessage(),
                 'trace' => $ex->getTrace(),
                 'settings' => $settings
