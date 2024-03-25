@@ -4,9 +4,11 @@ namespace Payone\Models\PaymentConfig;
 
 use Payone\Repositories\LoginRepository;
 use Payone\Services\SettingsService;
+use Plenty\Plugin\Log\Loggable;
 
 class ApiCredentials
 {
+    use Loggable;
     /**
      * @var SettingsService
      */
@@ -37,6 +39,7 @@ class ApiCredentials
         $apiContextParams['key'] = $this->getKey($paymentCode, $clientId, $pluginSetId);
         $apiContextParams['mode'] = $this->getMode($clientId, $pluginSetId);
 
+        $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $apiContextParams);
         return $apiContextParams;
     }
 
