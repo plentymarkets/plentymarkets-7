@@ -338,13 +338,13 @@ class PayoneAssistant extends WizardProvider
         $config['steps']['payone' . $paymentCode . 'Step'] = [
             'title' => 'Assistant.titlePayoneProductsStep' . $paymentCode,
             'description' => 'Assistant.descriptionPayoneProductsStep' . $paymentCode,
-            'validationClass' => PayoneInvoiceSecureCredentialsValidator::class,
             'showFullDescription' => true,
             'condition' => $paymentCode . 'Toggle',
             'sections' => [
                 [
                     'title' => 'Assistant.titlePayonePaymentSection',
                     'description' => 'Assistant.descriptionPayonePaymentSectionSecureInvoice',
+                    'validationClass' => PayoneInvoiceSecureCredentialsValidator::class,
                     'form' =>
                         $this->getMinMaxAmountConfig($paymentCode)
                         +
