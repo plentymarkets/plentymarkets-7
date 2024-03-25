@@ -34,7 +34,6 @@ class AssistantSettingsHandler implements WizardSettingsHandler
         $pluginSetId = $pluginSetRepo->getCurrentPluginSetId();
 
         $data = $parameters['data'];
-        $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $data);
 
         /** @var Logins $loginModel */
         $loginModel = pluginApp(Logins::class);

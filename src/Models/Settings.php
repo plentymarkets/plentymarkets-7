@@ -97,7 +97,6 @@ class Settings extends Model
      */
     public function updateValues(array $data): Model
     {
-        $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $data);
         if (isset($data['loginId'])) {
             $this->value['loginId'] = $data['loginId'];
         }
