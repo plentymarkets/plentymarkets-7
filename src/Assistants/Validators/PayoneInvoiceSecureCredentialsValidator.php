@@ -5,9 +5,9 @@ namespace Payone\Assistants\Validators;
 use Illuminate\Support\MessageBag;
 use Payone\Helpers\PayoneHelper;
 use Payone\Services\SettingsService;
+use Plenty\Exceptions\ValidationException;
 use Plenty\Plugin\Translation\Translator;
 use Plenty\Validation\Validator;
-use Plenty\Exceptions\ValidationException;
 
 class PayoneInvoiceSecureCredentialsValidator extends Validator
 {

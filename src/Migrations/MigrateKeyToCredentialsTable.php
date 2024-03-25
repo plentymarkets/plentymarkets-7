@@ -2,10 +2,13 @@
 
 namespace Payone\Migrations;
 
+use Exception;
 use Payone\Models\Logins;
 use Payone\Models\Settings;
 use Payone\Repositories\LoginRepository;
+use Payone\Services\SettingsService;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
+use Plenty\Plugin\CachingRepository;
 use Plenty\Plugin\Log\Loggable;
 
 class MigrateKeyToCredentialsTable
@@ -15,6 +18,7 @@ class MigrateKeyToCredentialsTable
     public function run()
     {
         $database = pluginApp(DataBase::class);
+        $cachingRepository = pluginApp(CachingRepository::class);
 
         /** @var Settings[] $allSettings */
         $allSettings = $database->query(Settings::class)->get();
@@ -28,17 +32,26 @@ class MigrateKeyToCredentialsTable
                     [
                         null,
                         $setting->value['key'],
-                        $setting->value['PAYONE_PAYONE_INVOICE_SECURE']['key']
+                        $setting->value['payoneMethods']['PAYONE_PAYONE_INVOICE_SECURE']['key']
                     ]
                 );
 
                 $credentialsSettings = $loginRepository->save($credentialData);
 
-                unset($setting->value['key'], $setting->value['PAYONE_PAYONE_INVOICE_SECURE']['key']);
+                unset($setting->value['key'], $setting->value['payoneMethods']['PAYONE_PAYONE_INVOICE_SECURE']['key']);
 
                 $setting->value['loginId'] = $credentialsSettings->id;
                 $setting->save();
-            } catch (\Exception $ex) {
+
+                $cachingRepository->forget(
+                    SettingsService::CACHING_KEY_SETTINGS . '_' . $setting->clientId . '_' . $setting->pluginSetId
+                );
+                $cachingRepository->add(
+                    SettingsService::CACHING_KEY_SETTINGS . '_' . $setting->clientId . '_' . $setting->pluginSetId,
+                    $setting,
+                    1440
+                ); //One day
+            } catch (Exception $ex) {
                 $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $ex->getTrace());
             }
         }

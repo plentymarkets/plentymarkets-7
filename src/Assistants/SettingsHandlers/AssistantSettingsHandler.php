@@ -2,19 +2,25 @@
 
 namespace Payone\Assistants\SettingsHandlers;
 
+use Exception;
 use Payone\Helpers\PaymentHelper;
+use Payone\Helpers\PayoneHelper;
 use Payone\Models\Logins;
 use Payone\Repositories\LoginRepository;
 use Payone\Services\SettingsService;
 use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
 use Plenty\Modules\Wizard\Contracts\WizardSettingsHandler;
+use Plenty\Plugin\Log\Loggable;
+use Throwable;
 
 class AssistantSettingsHandler implements WizardSettingsHandler
 {
+    use Loggable;
+
     /**
      * @param array $parameters
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      */
     public function handle(array $parameters): bool
     {
@@ -43,14 +49,8 @@ class AssistantSettingsHandler implements WizardSettingsHandler
         if ($data['key'] != '') {
             $loginModel->key = $data['key'];
         }
-        if ($data['key'] != '') {
-            $loginModel->invoiceSecureKey = $data['invoiceSecureKey'];
-        }
-
-        $updatedLogin = $loginRepository->save($loginModel);
 
         $settings = [
-            'loginId' => $updatedLogin->id ?? '',
             'mid' => $data['mid'] ?? '',
             'portalId' => $data['portalId'] ?? '',
             'aid' => $data['aid'] ?? '',
@@ -68,6 +68,11 @@ class AssistantSettingsHandler implements WizardSettingsHandler
                 switch ($paymentCode) {
                     case 'PAYONE_PAYONE_INVOICE_SECURE':
                         $payoneMethods[$paymentCode]['portalId'] = $data[$paymentCode . 'portalId'] ?? '';
+
+                        if ($data[$paymentCode . 'key'] != '') {
+                            $loginModel->invoiceSecureKey = $data[$paymentCode . 'key'];
+                        }
+
                         break;
                     case 'PAYONE_PAYONE_CREDIT_CARD':
                         $payoneMethods[$paymentCode]['minExpireTime'] = (int)($data[$paymentCode . 'minExpireTime'] ?? 30);
@@ -94,11 +99,20 @@ class AssistantSettingsHandler implements WizardSettingsHandler
         }
 
         $settings['payoneMethods'] = $payoneMethods;
-
-        /** @var SettingsService $settingsService */
-        $settingsService = pluginApp(SettingsService::class);
-        $settingsService->updateOrCreateSettings($settings, $clientId, $pluginSetId);
-
+        try {
+            $updatedLogin = $loginRepository->save($loginModel);
+            $settings['loginId'] = $updatedLogin->id ?? '';
+            /** @var SettingsService $settingsService */
+            $settingsService = pluginApp(SettingsService::class);
+            $settingsService->updateOrCreateSettings($settings, $clientId, $pluginSetId);
+        } catch (Throwable $ex) {
+            $this->getLogger(__METHOD__)->debug(PayoneHelper::PLUGIN_NAME . '::General.saveSettingsError', [
+                'error' => $ex->getMessage(),
+                'trace' => $ex->getTrace(),
+                'settings' => $settings
+            ]);
+            return false;
+        }
         return true;
     }
 }

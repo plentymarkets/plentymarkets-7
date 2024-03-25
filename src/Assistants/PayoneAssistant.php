@@ -270,7 +270,6 @@ class PayoneAssistant extends WizardProvider
             $config['steps']['payoneProductsStep']['sections'][] = [
                 'title' => 'Assistant.titlePayoneProductsStep' . $paymentCode,
                 'description' => 'Assistant.descriptionPayoneProductsStep' . $paymentCode,
-                'validationClass' => ($paymentCode == PayoneInvoiceSecurePaymentMethod::PAYMENT_CODE) ? PayoneInvoiceSecureCredentialsValidator::class : '',
                 'showFullDescription' => true,
                 'form' => [
                     $paymentCode . 'Toggle' => [
@@ -339,6 +338,7 @@ class PayoneAssistant extends WizardProvider
         $config['steps']['payone' . $paymentCode . 'Step'] = [
             'title' => 'Assistant.titlePayoneProductsStep' . $paymentCode,
             'description' => 'Assistant.descriptionPayoneProductsStep' . $paymentCode,
+            'validationClass' => PayoneInvoiceSecureCredentialsValidator::class,
             'showFullDescription' => true,
             'condition' => $paymentCode . 'Toggle',
             'sections' => [
@@ -363,7 +363,7 @@ class PayoneAssistant extends WizardProvider
                                 'type' => 'text',
                                 'options' => [
                                     'name' => 'Assistant.key',
-                                    'required' => true
+                                    'required' => false
                                 ]
                             ]
                         ]
