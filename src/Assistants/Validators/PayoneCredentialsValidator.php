@@ -3,7 +3,6 @@
 namespace Payone\Assistants\Validators;
 
 use Illuminate\Support\MessageBag;
-use Payone\Helpers\PayoneHelper;
 use Payone\PluginConstants;
 use Payone\Services\SettingsService;
 use Plenty\Exceptions\ValidationException;
@@ -37,7 +36,7 @@ class PayoneCredentialsValidator extends Validator
             $portalId = $accountSettings->value['portalId'];
             $aid = $accountSettings->value['aid'];
             if ($loginMid != $mid || $loginPortalId != $portalId || $loginAid != $aid) {
-                $key = PluginConstants::NAME . "::Assistant.usernameWithEmptyPasswordError";
+                $key = PluginConstants::NAME . "::General.usernameWithEmptyPasswordError";
                 $validationMessage .= $translator->trans($key, [
                     'mid' => $mid,
                     'portalId' => $portalId,
@@ -48,7 +47,7 @@ class PayoneCredentialsValidator extends Validator
         }
         //for new login, check the password to be filled-in
         if (empty($data['loginId']) && empty($loginKey)) {
-            $key = PluginConstants::NAME . "::Assistant.usernameWithEmptyPasswordError";
+            $key = PluginConstants::NAME . "::General.usernameWithEmptyPasswordError";
             $validationMessage .= $translator->trans($key, [
                 'mid' => $mid,
                 'portalId' => $portalId,

@@ -1,5 +1,10 @@
 # Release Notes für PAYONE
 
+## 2.7.0 (2023-03-26)
+
+### Geändert
+- Überarbeitung des Assistenten: Passwortüberprüfung.
+ 
 ## 2.6.0 (2023-05-24)
 
 ### Behoben

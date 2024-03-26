@@ -7,9 +7,11 @@ use Payone\Methods\PayoneInvoiceSecurePaymentMethod;
 use Payone\Models\Settings;
 use Payone\Repositories\LoginRepository;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
+use Plenty\Modules\Plugin\DataBase\Contracts\Model;
 use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
 use Plenty\Plugin\Application;
 use Plenty\Plugin\CachingRepository;
+use Throwable;
 
 class SettingsService
 {
@@ -57,7 +59,7 @@ class SettingsService
                 $loginRepository = pluginApp(LoginRepository::class);
                 $loginCredentials = $loginRepository->getById($settings->value['loginId']);
                 return $loginCredentials->invoiceSecureKey;
-            } catch (\Throwable $ex) {
+            } catch (Throwable $ex) {
                 return null;
             }
         }
@@ -146,7 +148,7 @@ class SettingsService
      * @param array $data
      * @param int|null $clientId
      * @param int|null $pluginSetId
-     * @return \Plenty\Modules\Plugin\DataBase\Contracts\Model|Settings
+     * @return Model|Settings
      */
     public function updateOrCreateSettings(array $data, int $clientId = null, int $pluginSetId = null)
     {
@@ -191,7 +193,7 @@ class SettingsService
 
     /**
      * @param int $pluginSetId
-     * @return Settings[]|array|\Plenty\Modules\Plugin\DataBase\Contracts\Model[]
+     * @return Settings[]|array|Model[]
      */
     public function getAllSettingsForPluginSetId(int $pluginSetId)
     {

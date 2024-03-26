@@ -3,7 +3,6 @@
 namespace Payone\Assistants\Validators;
 
 use Illuminate\Support\MessageBag;
-use Payone\Helpers\PayoneHelper;
 use Payone\Methods\PayoneInvoiceSecurePaymentMethod;
 use Payone\PluginConstants;
 use Payone\Services\SettingsService;
@@ -34,7 +33,7 @@ class PayoneInvoiceSecureCredentialsValidator extends Validator
 
             $portalId = $accountSettings->value[$paymentCode]['portalId'];
             if ($loginPortalId != $portalId) {
-                $key = PluginConstants::NAME . "::Assistant.usernameWithEmptyPasswordError";
+                $key = PluginConstants::NAME . "::General.usernameWithEmptyPasswordError";
                 $validationMessage .= $translator->trans($key, [
                     'portalId' => $portalId,
                 ]);
@@ -43,7 +42,7 @@ class PayoneInvoiceSecureCredentialsValidator extends Validator
         }
         //for new login, check the password to be filled-in
         if (empty($data['loginId']) && empty($loginKey)) {
-            $key = PluginConstants::NAME . "::Assistant.usernameWithEmptyPasswordError";
+            $key = PluginConstants::NAME . "::General.usernameWithEmptyPasswordError";
             $validationMessage .= $translator->trans($key, [
                 'portalId' => $portalId,
             ]);

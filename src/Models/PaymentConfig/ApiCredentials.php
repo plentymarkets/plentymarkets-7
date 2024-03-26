@@ -39,7 +39,6 @@ class ApiCredentials
         $apiContextParams['key'] = $this->getKey($paymentCode, $clientId, $pluginSetId);
         $apiContextParams['mode'] = $this->getMode($clientId, $pluginSetId);
 
-        $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $apiContextParams);
         return $apiContextParams;
     }
 

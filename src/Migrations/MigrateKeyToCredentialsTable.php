@@ -2,7 +2,6 @@
 
 namespace Payone\Migrations;
 
-use Exception;
 use Payone\Methods\PayoneInvoiceSecurePaymentMethod;
 use Payone\Models\Logins;
 use Payone\Models\Settings;
@@ -52,7 +51,7 @@ class MigrateKeyToCredentialsTable
                     $setting,
                     1440
                 ); //One day
-            } catch (Exception $ex) {
+            } catch (\Throwable $ex) {
                 $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $ex->getTrace());
             }
         }

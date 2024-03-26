@@ -3,7 +3,6 @@
 namespace Payone\Repositories;
 
 use Exception;
-use Payone\Helpers\PayoneHelper;
 use Payone\Models\Logins;
 use Payone\PluginConstants;
 use Plenty\Modules\Authorization\Services\AuthHelper;
@@ -62,7 +61,7 @@ class LoginRepository
             }
         } catch (Exception $ex) {
             $this->getLogger(__METHOD__)
-                ->error(PluginConstants::NAME . "::Debug.getCredentialsById::$id", $ex->getMessage());
+                ->error(PluginConstants::NAME . "::General.getCredentialsById::$id", $ex->getMessage());
         }
 
         return null;
@@ -97,7 +96,7 @@ class LoginRepository
                 });
             } catch (Exception $e) {
                 $this->getLogger(__METHOD__)
-                    ->error(PluginConstants::NAME . "::Debug.updateLoginError::{$login->id}", $e->getMessage());
+                    ->error(PluginConstants::NAME . "::General.updateLoginError::{$login->id}", $e->getMessage());
                 return false;
             }
         } else {
@@ -107,7 +106,7 @@ class LoginRepository
                 });
             } catch (Exception $e) {
                 $this->getLogger(__METHOD__)
-                    ->error(PluginConstants::NAME . "::Debug.saveLoginError", $e->getMessage());
+                    ->error(PluginConstants::NAME . "::General.saveLoginError", $e->getMessage());
                 return false;
             }
         }
@@ -137,7 +136,7 @@ class LoginRepository
             });
         } catch (Exception $e) {
             $this->getLogger(__METHOD__)
-                ->error(PluginConstants::NAME . "::Debug.deleteLoginError", $e->getMessage());
+                ->error(PluginConstants::NAME . "::General.deleteLoginError", $e->getMessage());
             return false;
         }
 
