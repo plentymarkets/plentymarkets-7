@@ -19,12 +19,9 @@ class PayoneInvoiceSecureCredentialsValidator extends Validator
     public static function validateOrFail(array $data): void
     {
         $paymentCode = PayoneInvoiceSecurePaymentMethod::PAYMENT_CODE;
-        /** @var Translator $translator */
-        $translator = pluginApp(Translator::class);
 
         $loginKey = $data[$paymentCode . 'key'];
         $loginPortalId = $data[$paymentCode . 'portalId'];
-        $validationMessage = '';
 
         if ($data['loginId'] && empty($loginKey)) {
             /** @var SettingsService $settingsService */
@@ -44,7 +41,7 @@ class PayoneInvoiceSecureCredentialsValidator extends Validator
             $key = PluginConstants::NAME . "::General.existingUsernameInvoiceSecureWithEmptyPasswordError";
 
             self::returnMessage($key, [
-                'portalId' => $portalId,
+                'portalId' => $loginPortalId,
             ] );
         }
 
