@@ -46,11 +46,6 @@ class MigrateKeyToCredentialsTable
                 $cachingRepository->forget(
                     SettingsService::CACHING_KEY_SETTINGS . '_' . $setting->clientId . '_' . $setting->pluginSetId
                 );
-                $cachingRepository->add(
-                    SettingsService::CACHING_KEY_SETTINGS . '_' . $setting->clientId . '_' . $setting->pluginSetId,
-                    $setting,
-                    1440
-                ); //One day
             } catch (\Throwable $ex) {
                 $this->getLogger(__METHOD__)->debug('Payone::General.objectData', $ex->getTrace());
             }

@@ -36,24 +36,23 @@ class PayoneCredentialsValidator extends Validator
             $portalId = $accountSettings->value['portalId'];
             $aid = $accountSettings->value['aid'];
             if ($loginMid != $mid || $loginPortalId != $portalId || $loginAid != $aid) {
-                $key = PluginConstants::NAME . "::General.usernameWithEmptyPasswordError";
-                $validationMessage .= $translator->trans($key, [
-                    'mid' => $mid,
-                    'portalId' => $portalId,
-                    'aid' => $aid
+                $key = PluginConstants::NAME . "::General.existingUsernameWithEmptyPasswordError";
+
+                self::returnMessage($key, [
+                    'mid' => $loginMid,
+                    'portalId' => $loginPortalId,
+                    'aid' => $loginAid
                 ]);
-                self::returnMessage($validationMessage);
             }
         }
         //for new login, check the password to be filled-in
         if (empty($data['loginId']) && empty($loginKey)) {
             $key = PluginConstants::NAME . "::General.usernameWithEmptyPasswordError";
-            $validationMessage .= $translator->trans($key, [
+            self::returnMessage($key,[
                 'mid' => $mid,
                 'portalId' => $portalId,
                 'aid' => $aid
             ]);
-            self::returnMessage($key, $validationMessage);
         }
 
         parent::validateOrFail($data);
@@ -62,11 +61,11 @@ class PayoneCredentialsValidator extends Validator
     /**
      * @throws ValidationException
      */
-    public static function returnMessage($key, $message = null)
+    public static function returnMessage($key, $data = [])
     {
         /** @var Translator $translator */
         $translator = pluginApp(Translator::class);
-        $messageText = $message ?? $translator->trans($key);
+        $messageText = $translator->trans($key, $data);
         /** @var MessageBag $messageBag */
         $messageBag = pluginApp(
             MessageBag::class,

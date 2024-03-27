@@ -33,20 +33,19 @@ class PayoneInvoiceSecureCredentialsValidator extends Validator
 
             $portalId = $accountSettings->value[$paymentCode]['portalId'];
             if ($loginPortalId != $portalId) {
-                $key = PluginConstants::NAME . "::General.usernameWithEmptyPasswordError";
-                $validationMessage .= $translator->trans($key, [
-                    'portalId' => $portalId,
+                $key = PluginConstants::NAME . "::General.existingUsernameInvoiceSecureWithEmptyPasswordError";
+                self::returnMessage($key, [
+                    'portalId' => $loginPortalId,
                 ]);
-                self::returnMessage($validationMessage);
             }
         }
         //for new login, check the password to be filled-in
         if (empty($data['loginId']) && empty($loginKey)) {
-            $key = PluginConstants::NAME . "::General.usernameWithEmptyPasswordError";
-            $validationMessage .= $translator->trans($key, [
+            $key = PluginConstants::NAME . "::General.existingUsernameInvoiceSecureWithEmptyPasswordError";
+
+            self::returnMessage($key, [
                 'portalId' => $portalId,
-            ]);
-            self::returnMessage($key, $validationMessage);
+            ] );
         }
 
         parent::validateOrFail($data);
@@ -55,11 +54,11 @@ class PayoneInvoiceSecureCredentialsValidator extends Validator
     /**
      * @throws ValidationException
      */
-    public static function returnMessage($key, $message = null)
+    public static function returnMessage($key, $data = [])
     {
         /** @var Translator $translator */
         $translator = pluginApp(Translator::class);
-        $messageText = $message ?? $translator->trans($key);
+        $messageText = $translator->trans($key, $data);
         /** @var MessageBag $messageBag */
         $messageBag = pluginApp(
             MessageBag::class,
