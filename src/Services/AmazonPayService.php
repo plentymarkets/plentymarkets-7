@@ -31,6 +31,7 @@ class AmazonPayService
 
     /** @var Logger */
     private $logger;
+    private LoginHelper $loginHelper;
 
     /**
      * AmazonPayService constructor.
@@ -38,13 +39,16 @@ class AmazonPayService
      * @param GenericPaymentDataProvider $dataProvider
      * @param Logger $logger
      */
-    public function __construct(Api                        $api,
-                                GenericPaymentDataProvider $dataProvider,
-                                Logger                     $logger)
-    {
+    public function __construct(
+        Api $api,
+        GenericPaymentDataProvider $dataProvider,
+        Logger $logger,
+        LoginHelper $loginHelper
+    ) {
         $this->api = $api;
         $this->dataProvider = $dataProvider;
         $this->logger = $logger;
+        $this->loginHelper = $loginHelper;
     }
 
     /**
@@ -52,8 +56,10 @@ class AmazonPayService
      * @param bool $billingAddress
      * @return mixed
      */
-    public function registerCustomerFromAmazonPay(GetOrderReferenceDetailsResponse $orderRefDetails, $billingAddress = false)
-    {
+    public function registerCustomerFromAmazonPay(
+        GetOrderReferenceDetailsResponse $orderRefDetails,
+        $billingAddress = false
+    ) {
         $this->logger
             ->setIdentifier(__METHOD__)
             ->debug('AmazonPay.registerCustomer', (array)$orderRefDetails);
@@ -186,14 +192,17 @@ class AmazonPayService
         );
 
         /** @var SetOrderReferenceDetailsResponse $orderReferenceResponse */
-        $orderReferenceResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_SETORDERREFERENCEDETAILS, $requestParams);
+        $orderReferenceResponse = $this->api->doGenericPayment(
+            GenericPayment::ACTIONTYPE_SETORDERREFERENCEDETAILS,
+            $requestParams
+        );
 
         $this->logger
             ->setIdentifier(__METHOD__)
             ->debug('AmazonPay.setOrderReference', [
                 "workOrderId" => $workOrderId,
                 "amazonReferenceId" => $amazonReferenceId,
-                "requestParams" => $requestParams,
+                "requestParams" => $this->loginHelper->cleanupLogs($requestParams),
                 "setOrderReferenceResponse" => (array)$orderReferenceResponse
             ]);
 
@@ -226,14 +235,17 @@ class AmazonPayService
         );
 
         /** @var SetOrderReferenceDetailsResponse $orderReferenceResponse */
-        $orderReferenceResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_SETORDERREFERENCEDETAILS, $requestParams);
+        $orderReferenceResponse = $this->api->doGenericPayment(
+            GenericPayment::ACTIONTYPE_SETORDERREFERENCEDETAILS,
+            $requestParams
+        );
 
         $this->logger
             ->setIdentifier(__METHOD__)
             ->debug('AmazonPay.setOrderReference', [
                 "workOrderId" => $workOrderId,
                 "amazonReferenceId" => $amazonReferenceId,
-                "requestParams" => $requestParams,
+                "requestParams" => $this->loginHelper->cleanupLogs($requestParams),
                 "setOrderReferenceResponse" => (array)$orderReferenceResponse
             ]);
 
@@ -265,14 +277,17 @@ class AmazonPayService
             );
 
             /** @var ConfirmOrderReferenceResponse $confirmOrderReferenceResponse */
-            $confirmOrderReferenceResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_CONFIRMORDERREFERENCE, $requestParams);
+            $confirmOrderReferenceResponse = $this->api->doGenericPayment(
+                GenericPayment::ACTIONTYPE_CONFIRMORDERREFERENCE,
+                $requestParams
+            );
 
             $this->logger
                 ->setIdentifier(__METHOD__)
                 ->debug('AmazonPay.confirmOrderReference', [
                     "workOrderId" => $workOrderId,
                     "amazonReferenceId" => $amazonReferenceId,
-                    "requestParams" => $requestParams,
+                    "requestParams" => $this->loginHelper->cleanupLogs($requestParams),
                     "confirmOrderReferenceResponse" => (array)$confirmOrderReferenceResponse
                 ]);
 
@@ -315,14 +330,17 @@ class AmazonPayService
             );
 
             /** @var ConfirmOrderReferenceResponse $confirmOrderReferenceResponse */
-            $confirmOrderReferenceResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_CONFIRMORDERREFERENCE, $requestParams);
+            $confirmOrderReferenceResponse = $this->api->doGenericPayment(
+                GenericPayment::ACTIONTYPE_CONFIRMORDERREFERENCE,
+                $requestParams
+            );
 
             $this->logger
                 ->setIdentifier(__METHOD__)
                 ->debug('AmazonPay.confirmOrderReference', [
                     "workOrderId" => $workOrderId,
                     "amazonReferenceId" => $amazonReferenceId,
-                    "requestParams" => $requestParams,
+                    "requestParams" => $this->loginHelper->cleanupLogs($requestParams),
                     "confirmOrderReferenceResponse" => (array)$confirmOrderReferenceResponse
                 ]);
 

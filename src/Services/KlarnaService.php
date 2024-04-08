@@ -4,6 +4,7 @@ namespace Payone\Services;
 
 use Payone\Adapter\Logger;
 use Payone\Helpers\AddressHelper;
+use Payone\Helpers\LoginHelper;
 use Payone\Providers\Api\Request\GenericPaymentDataProvider;
 use Payone\Providers\Api\Request\Models\GenericPayment;
 use Plenty\Modules\Account\Address\Models\Address;
@@ -18,13 +19,13 @@ use Plenty\Modules\Order\Models\Order;
  */
 class KlarnaService
 {
-    /** @var Api  */
+    /** @var Api */
     private $api;
 
-    /** @var GenericPaymentDataProvider  */
+    /** @var GenericPaymentDataProvider */
     private $dataProvider;
 
-    /** @var Logger  */
+    /** @var Logger */
     private $logger;
 
     /**
@@ -33,10 +34,11 @@ class KlarnaService
      * @param GenericPaymentDataProvider $dataProvider
      * @param Logger $logger
      */
-    public function __construct(Api $api,
-                                GenericPaymentDataProvider $dataProvider,
-                                Logger $logger)
-    {
+    public function __construct(
+        Api $api,
+        GenericPaymentDataProvider $dataProvider,
+        Logger $logger
+    ) {
         $this->api = $api;
         $this->dataProvider = $dataProvider;
         $this->logger = $logger;
@@ -63,49 +65,12 @@ class KlarnaService
         $requestParams['address'] = $this->createAddressData($billingAddress, $shippingAddress);
 
         $startSessionResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_STARTSESSION, $requestParams);
-
-
-
+        /** @var LoginHelper $loginHelper */
+        $loginHelper = pluginApp(LoginHelper::class);
         $this->logger
             ->setIdentifier(__METHOD__)
             ->debug('Klarna.confirmOrderReference', [
-                "requestParams" => $requestParams,
-                "response" => $startSessionResponse
-            ]);
-
-        return $startSessionResponse;
-    }
-
-
-
-    /**
-     * @param string $paymentCode
-     * @param Basket $basket
-     * @return mixed
-     */
-    public function startSession(string $paymentCode, Basket $basket)
-    {
-        /** @var AddressHelper $addressHelper */
-        $addressHelper = pluginApp(AddressHelper::class);
-        $billingAddress = $addressHelper->getBasketBillingAddress($basket);
-        // If shippingAddress is empty, then it's filled with the billingAddress data
-        $shippingAddress = $addressHelper->getBasketShippingAddress($basket);
-
-        $requestParams = $this->dataProvider->getStartSessionRequestData(
-            $paymentCode,
-            $basket
-        );
-
-        $requestParams['address'] = $this->createAddressData($billingAddress, $shippingAddress);
-
-        $startSessionResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_STARTSESSION, $requestParams);
-
-
-
-        $this->logger
-            ->setIdentifier(__METHOD__)
-            ->debug('AmazonPay.confirmOrderReference', [
-                "requestParams" => $requestParams,
+                "requestParams" => $loginHelper->cleanupLogs($requestParams),
                 "response" => $startSessionResponse
             ]);
 
@@ -174,8 +139,7 @@ class KlarnaService
         }
 
         // shippingAddress contains as fallback the billingAddress data
-        if ($shippingAddress->id != $billingAddress->id)
-        {
+        if ($shippingAddress->id != $billingAddress->id) {
             if (!empty($shippingAddress->firstName)) {
                 $addressData['shipping_firstname'] = $shippingAddress->firstName;
             }
@@ -207,5 +171,38 @@ class KlarnaService
         }
 
         return $addressData;
+    }
+
+    /**
+     * @param string $paymentCode
+     * @param Basket $basket
+     * @return mixed
+     */
+    public function startSession(string $paymentCode, Basket $basket)
+    {
+        /** @var AddressHelper $addressHelper */
+        $addressHelper = pluginApp(AddressHelper::class);
+        $billingAddress = $addressHelper->getBasketBillingAddress($basket);
+        // If shippingAddress is empty, then it's filled with the billingAddress data
+        $shippingAddress = $addressHelper->getBasketShippingAddress($basket);
+
+        $requestParams = $this->dataProvider->getStartSessionRequestData(
+            $paymentCode,
+            $basket
+        );
+
+        $requestParams['address'] = $this->createAddressData($billingAddress, $shippingAddress);
+
+        $startSessionResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_STARTSESSION, $requestParams);
+        /** @var LoginHelper $loginHelper */
+        $loginHelper = pluginApp(LoginHelper::class);
+        $this->logger
+            ->setIdentifier(__METHOD__)
+            ->debug('AmazonPay.confirmOrderReference', [
+                "requestParams" => $loginHelper->cleanupLogs($requestParams),
+                "response" => $startSessionResponse
+            ]);
+
+        return $startSessionResponse;
     }
 }

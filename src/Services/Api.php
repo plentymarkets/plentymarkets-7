@@ -92,7 +92,9 @@ class Api
      */
     public function doLibCall($call, $requestParams): array
     {
-        $this->logger->debug('Api.' . $this->getCallAction($call), $requestParams);
+        /** @var LoginHelper $loginHelper */
+        $loginHelper = pluginApp(LoginHelper::class);
+        $this->logger->debug('Api.' . $this->getCallAction($call), $loginHelper->cleanupLogs($requestParams));
 
         try {
             $response = $this->libCall->call(
