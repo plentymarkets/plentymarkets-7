@@ -4,6 +4,7 @@ namespace Payone\Services;
 
 use Payone\Adapter\Logger;
 use Payone\Adapter\SessionStorage;
+use Payone\Helpers\LoginHelper;
 use Payone\Methods\PayoneAmazonPayPaymentMethod;
 use Payone\Models\Api\GenericPayment\ConfirmOrderReferenceResponse;
 use Payone\Models\Api\GenericPayment\GetOrderReferenceDetailsResponse;
