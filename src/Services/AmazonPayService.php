@@ -39,6 +39,7 @@ class AmazonPayService
      * @param Api $api
      * @param GenericPaymentDataProvider $dataProvider
      * @param Logger $logger
+     * @param LoginHelper $logger
      */
     public function __construct(
         Api $api,
