@@ -1,6 +1,6 @@
 # Release Notes for PAYONE
 
-## 2.7.0 (2023-03-26)
+## 2.7.0 (2024-04-15)
 
 ### Changed
 - Rework of the assistant: password validation.
