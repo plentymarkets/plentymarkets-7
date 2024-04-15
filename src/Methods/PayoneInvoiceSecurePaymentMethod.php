@@ -4,7 +4,6 @@
 
 namespace Payone\Methods;
 
-
 use Payone\Services\SettingsService;
 
 /**
@@ -34,7 +33,7 @@ class PayoneInvoiceSecurePaymentMethod extends PaymentAbstract
     {
         $portalId = $settingsService->getPaymentSettingsValue('portalId', self::PAYMENT_CODE);
         $key = $settingsService->getPaymentSettingsValue('key', self::PAYMENT_CODE);
-        
+
         // A separate portal ID and key must be set for this payment method
         return (!empty($portalId) && !empty($key));
     }

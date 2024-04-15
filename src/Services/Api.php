@@ -3,6 +3,7 @@
 namespace Payone\Services;
 
 use Payone\Adapter\Logger;
+use Payone\Helpers\LoginHelper;
 use Payone\Models\Api\AuthResponse;
 use Payone\Models\Api\AuthResponseFactory;
 use Payone\Models\Api\GenericPayment\GenericPaymentResponseFactory;
@@ -66,9 +67,9 @@ class Api
     /**
      * @param $requestParams
      *
+     * @return AuthResponse
      * @throws \Exception
      *
-     * @return AuthResponse
      */
     public function doAuth($requestParams): AuthResponse
     {
@@ -84,11 +85,55 @@ class Api
     }
 
     /**
+     * @param string $call request type
      * @param $requestParams
      *
-     * @throws \Exception
+     * @return array
+     */
+    public function doLibCall($call, $requestParams): array
+    {
+        /** @var LoginHelper $loginHelper */
+        $loginHelper = pluginApp(LoginHelper::class);
+        $this->logger->debug('Api.' . $this->getCallAction($call), $loginHelper->cleanupLogs($requestParams));
+
+        try {
+            $response = $this->libCall->call(
+                PluginConstants::NAME . '::' . $this->getCallAction($call),
+                $requestParams
+            );
+        } catch (\Exception $e) {
+            // something unexpected happened
+            $response = ['errorMessage' => $e->getMessage()];
+        }
+        if (isset($response['error'])) {
+            //sdk error
+            $response = ['errorMessage' => json_encode($response)];
+        }
+
+        $success = $response['success'] ?? false;
+        if (!$success) {// log all errors including successful but invalid requests
+            $this->logger->error('Api.' . $this->getCallAction($call), $response);
+        }
+
+        return $response;
+    }
+
+    /**
+     * @param string $requestType
+     *
+     * @return string
+     */
+    private function getCallAction($requestType): string
+    {
+        return 'do' . $requestType;
+    }
+
+    /**
+     * @param $requestParams
      *
      * @return PreAuthResponse
+     * @throws \Exception
+     *
      */
     public function doPreAuth($requestParams): PreAuthResponse
     {
@@ -105,9 +150,9 @@ class Api
     /**
      * @param $requestParams
      *
+     * @return Response
      * @throws \Exception
      *
-     * @return Response
      */
     public function doReversal($requestParams): Response
     {
@@ -125,9 +170,9 @@ class Api
     /**
      * @param $requestParams
      *
+     * @return Response
      * @throws \Exception
      *
-     * @return Response
      */
     public function doCapture($requestParams): Response
     {
@@ -145,9 +190,9 @@ class Api
     /**
      * @param $requestParams
      *
+     * @return Response
      * @throws \Exception
      *
-     * @return Response
      */
     public function doRefund($requestParams): Response
     {
@@ -240,58 +285,18 @@ class Api
     {
         $response = $this->doLibCall(self::REQUEST_TYPE_GENERIC_PAYMENT, $requestParams);
         $responseObject = GenericPaymentResponseFactory::create($actionType, $response);
-
+        /** @var LoginHelper $loginHelper */
+        $loginHelper = pluginApp(LoginHelper::class);
         $this->logger
             ->setIdentifier(__METHOD__)
             ->addReference('requestType', self::REQUEST_TYPE_GENERIC_PAYMENT)
             ->debug('AmazonPay.apiCall', [
                 'actionType' => $actionType,
-                'requestParams' => $requestParams,
+                'requestParams' => $loginHelper->cleanupLogs($requestParams),
                 'response' => $response,
                 'responseObject' => $responseObject
             ]);
 
         return $responseObject;
-    }
-
-    /**
-     * @param string $call request type
-     * @param $requestParams
-     *
-     * @return array
-     */
-    public function doLibCall($call, $requestParams): array
-    {
-        $this->logger->debug('Api.' . $this->getCallAction($call), $requestParams);
-
-        try {
-            $response = $this->libCall->call(
-                PluginConstants::NAME . '::' . $this->getCallAction($call), $requestParams
-            );
-        } catch (\Exception $e) {
-            // something unexpected happened
-            $response = ['errorMessage' => $e->getMessage()];
-        }
-        if (isset($response['error'])) {
-            //sdk error
-            $response = ['errorMessage' => json_encode($response)];
-        }
-
-        $success = $response['success'] ?? false;
-        if (!$success) {// log all errors including successful but invalid requests
-            $this->logger->error('Api.' . $this->getCallAction($call), $response);
-        }
-
-        return $response;
-    }
-
-    /**
-     * @param string $requestType
-     *
-     * @return string
-     */
-    private function getCallAction($requestType): string
-    {
-        return 'do' . $requestType;
     }
 }

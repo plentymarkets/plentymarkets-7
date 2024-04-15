@@ -2,13 +2,16 @@
 
 namespace Payone\Services;
 
-
 use Carbon\Carbon;
+use Payone\Methods\PayoneInvoiceSecurePaymentMethod;
 use Payone\Models\Settings;
+use Payone\Repositories\LoginRepository;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
+use Plenty\Modules\Plugin\DataBase\Contracts\Model;
 use Plenty\Modules\Plugin\PluginSet\Contracts\PluginSetRepositoryContract;
 use Plenty\Plugin\Application;
 use Plenty\Plugin\CachingRepository;
+use Throwable;
 
 class SettingsService
 {
@@ -33,6 +36,56 @@ class SettingsService
     {
         $this->database = $database;
         $this->cachingRepository = $cachingRepository;
+    }
+
+    /**
+     * @param string $settingsKey
+     * @param string $paymentKey
+     * @param int|null $clientId
+     * @param int|null $pluginSetId
+     * @return mixed|null
+     */
+    public function getPaymentSettingsValue(
+        string $settingsKey,
+        string $paymentKey,
+        int $clientId = null,
+        int $pluginSetId = null
+    ) {
+        $settings = $this->getSettingsValue('payoneMethods', $clientId, $pluginSetId);
+        // get key for Invoice secure
+        if ($paymentKey == PayoneInvoiceSecurePaymentMethod::PAYMENT_CODE && $settingsKey == 'key') {
+            try {
+                /** @var LoginRepository $loginRepository */
+                $loginRepository = pluginApp(LoginRepository::class);
+                $loginCredentials = $loginRepository->getById($settings->value['loginId']);
+                return $loginCredentials->invoiceSecureKey;
+            } catch (Throwable $ex) {
+                return null;
+            }
+        }
+        if (!is_null($settings)) {
+            if (isset($settings[$paymentKey][$settingsKey])) {
+                return $settings[$paymentKey][$settingsKey];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param string $settingsKey
+     * @param int|null $clientId
+     * @param int|null $pluginSetId
+     * @return mixed|null
+     */
+    public function getSettingsValue(string $settingsKey, int $clientId = null, int $pluginSetId = null)
+    {
+        $settings = $this->getSettings($clientId, $pluginSetId);
+        if (!is_null($settings)) {
+            if (isset($settings->value[$settingsKey])) {
+                return $settings->value[$settingsKey];
+            }
+        }
+        return null;
     }
 
     /**
@@ -61,48 +114,17 @@ class SettingsService
                 ->where('pluginSetId', '=', $pluginSetId)
                 ->limit(1)
                 ->get();
-            if(is_array($setting) && $setting[0] instanceof Settings) {
-                $this->cachingRepository->add(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId, $setting[0], 1440); //One day
+            if (is_array($setting) && $setting[0] instanceof Settings) {
+                $this->cachingRepository->add(
+                    self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId,
+                    $setting[0],
+                    1440
+                ); //One day
                 return $setting[0];
             }
         }
 
         return $this->cachingRepository->get(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId, null);
-    }
-
-    /**
-     * @param string $settingsKey
-     * @param int|null $clientId
-     * @param int|null $pluginSetId
-     * @return mixed|null
-     */
-    public function getSettingsValue(string $settingsKey, int $clientId = null, int $pluginSetId = null)
-    {
-        $settings = $this->getSettings($clientId, $pluginSetId);
-        if(!is_null($settings)) {
-            if(isset($settings->value[$settingsKey])) {
-                return $settings->value[$settingsKey];
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @param string $settingsKey
-     * @param string $paymentKey
-     * @param int|null $clientId
-     * @param int|null $pluginSetId
-     * @return mixed|null
-     */
-    public function getPaymentSettingsValue(string $settingsKey, string $paymentKey, int $clientId = null, int $pluginSetId = null)
-    {
-        $settings = $this->getSettingsValue('payoneMethods', $clientId, $pluginSetId);
-        if(!is_null($settings)) {
-            if(isset($settings[$paymentKey][$settingsKey])) {
-                return $settings[$paymentKey][$settingsKey];
-            }
-        }
-        return null;
     }
 
     /**
@@ -126,7 +148,7 @@ class SettingsService
      * @param array $data
      * @param int|null $clientId
      * @param int|null $pluginSetId
-     * @return \Plenty\Modules\Plugin\DataBase\Contracts\Model|Settings
+     * @return Model|Settings
      */
     public function updateOrCreateSettings(array $data, int $clientId = null, int $pluginSetId = null)
     {
@@ -157,7 +179,13 @@ class SettingsService
 
         if ($settings instanceof Settings) {
             $this->cachingRepository->forget(self::CACHING_KEY_SETTINGS . '_' . $clientId . '_' . $pluginSetId);
-            return $this->database->delete($settings);
+            $settingsDeleted = $this->database->delete($settings);
+            if ($settingsDeleted) {
+                /** @var LoginRepository $loginRepository */
+                $loginRepository = pluginApp(LoginRepository::class);
+
+                return $loginRepository->delete($settings->value['loginId']);
+            }
         }
 
         return false;
@@ -165,7 +193,7 @@ class SettingsService
 
     /**
      * @param int $pluginSetId
-     * @return Settings[]|array|\Plenty\Modules\Plugin\DataBase\Contracts\Model[]
+     * @return Settings[]|array|Model[]
      */
     public function getAllSettingsForPluginSetId(int $pluginSetId)
     {

@@ -6,6 +6,7 @@ use IO\Services\BasketService;
 use IO\Services\CheckoutService;
 use Payone\Adapter\Logger;
 use Payone\Adapter\SessionStorage;
+use Payone\Helpers\LoginHelper;
 use Payone\Helpers\PaymentHelper;
 use Payone\Helpers\ShopHelper;
 use Payone\Methods\PayoneAmazonPayPaymentMethod;
@@ -44,10 +45,11 @@ class AmazonPayController extends Controller
      * @param GenericPaymentDataProvider $dataProvider
      * @param Logger $logger
      */
-    public function __construct(Api $api,
-                                GenericPaymentDataProvider $dataProvider,
-                                Logger $logger)
-    {
+    public function __construct(
+        Api $api,
+        GenericPaymentDataProvider $dataProvider,
+        Logger $logger
+    ) {
         $this->api = $api;
         $this->dataProvider = $dataProvider;
         $this->logger = $logger;
@@ -65,12 +67,13 @@ class AmazonPayController extends Controller
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getAmazonPayLoginWidget(Twig $twig,
-                                            Response $response,
-                                            SessionStorage $sessionStorage,
-                                            BasketRepositoryContract $basketRepository,
-                                            PaymentHelper $paymentHelper)
-    {
+    public function getAmazonPayLoginWidget(
+        Twig $twig,
+        Response $response,
+        SessionStorage $sessionStorage,
+        BasketRepositoryContract $basketRepository,
+        PaymentHelper $paymentHelper
+    ) {
         $basket = $basketRepository->load();
         $selectedPaymentId = $basket->methodOfPaymentId;
         $amazonPayMopId = $paymentHelper->getMopId(PayoneAmazonPayPaymentMethod::PAYMENT_CODE);
@@ -84,7 +87,7 @@ class AmazonPayController extends Controller
         $sellerId = $sessionStorage->getSessionValue('sellerId');
         $workOrderId = $sessionStorage->getSessionValue('workOrderId');
 
-        if(strlen($clientId) <= 0 || strlen($sellerId) <= 0 || strlen($workOrderId) <= 0) {
+        if (strlen($clientId) <= 0 || strlen($sellerId) <= 0 || strlen($workOrderId) <= 0) {
             /** Only load the configuration data if not already stored within the session */
             /** @var GetConfigurationResponse $configResponse */
             $configResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_GETCONFIGURATION, $requestParams);
@@ -95,7 +98,7 @@ class AmazonPayController extends Controller
                     'configResponse' => $configResponse
                 ]);
 
-            if(!$configResponse->getSuccess()) {
+            if (!$configResponse->getSuccess()) {
                 return $response->json([
                     'error' => [
                         'message' => $configResponse->getErrorMessage()
@@ -149,6 +152,36 @@ class AmazonPayController extends Controller
     }
 
     /**
+     * Maps our language key into the specified language key from Amazon
+     *
+     * @param string $lang
+     * @return string
+     */
+    public function getLanguageCode(string $lang): string
+    {
+        switch ($lang) {
+            case 'de':
+                $lang = 'de-DE';
+                break;
+            case 'en':
+                $lang = 'en-GB';
+                break;
+            case 'es':
+                $lang = 'es-ES';
+                break;
+            case 'fr':
+                $lang = 'fr-FR';
+                break;
+            case 'it':
+                $lang = 'it-IT';
+                break;
+            default:
+                $lang = "en-GB";
+        }
+        return $lang;
+    }
+
+    /**
      * Renders the address book and wallet widget for the frontend.
      *
      * @param Twig $twig
@@ -161,12 +194,13 @@ class AmazonPayController extends Controller
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function renderWidgets(Twig $twig,
-                                  PaymentHelper $paymentHelper,
-                                  BasketRepositoryContract $basketRepository,
-                                  Request $request,
-                                  SessionStorage $sessionStorage): string
-    {
+    public function renderWidgets(
+        Twig $twig,
+        PaymentHelper $paymentHelper,
+        BasketRepositoryContract $basketRepository,
+        Request $request,
+        SessionStorage $sessionStorage
+    ): string {
         $basket = $basketRepository->load();
 
         // AccessToken in Request
@@ -215,12 +249,13 @@ class AmazonPayController extends Controller
      * @param SessionStorage $sessionStorage
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function getOrderReference(Request $request,
-                                      Response $response,
-                                      BasketRepositoryContract $basketRepositoryContract,
-                                      Checkout $checkout,
-                                      SessionStorage $sessionStorage): \Symfony\Component\HttpFoundation\Response
-    {
+    public function getOrderReference(
+        Request $request,
+        Response $response,
+        BasketRepositoryContract $basketRepositoryContract,
+        Checkout $checkout,
+        SessionStorage $sessionStorage
+    ): \Symfony\Component\HttpFoundation\Response {
         try {
             $amazonReferenceId = $request->get('amazonReferenceId');
             $sessionStorage->setSessionValue('amazonReferenceId', $amazonReferenceId);
@@ -242,19 +277,23 @@ class AmazonPayController extends Controller
             );
 
             /** @var GetOrderReferenceDetailsResponse $orderReferenceResponse */
-            $orderReferenceResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_GETORDERREFERENCEDETAILS, $requestParams);
-
+            $orderReferenceResponse = $this->api->doGenericPayment(
+                GenericPayment::ACTIONTYPE_GETORDERREFERENCEDETAILS,
+                $requestParams
+            );
+            /** @var LoginHelper $loginHelper */
+            $loginHelper = pluginApp(LoginHelper::class);
             $this->logger
                 ->setIdentifier(__METHOD__)
                 ->debug('AmazonPay.getOrderReference', [
                     "workOrderId" => $workOrderId,
                     "amazonReferenceId" => $amazonReferenceId,
                     "accessToken" => $accessToken,
-                    "requestParams" => $requestParams,
+                    "requestParams" => $loginHelper->cleanupLogs($requestParams),
                     "orderReferenceResponse" => (array)$orderReferenceResponse
                 ]);
 
-            if(!$orderReferenceResponse->getSuccess()) {
+            if (!$orderReferenceResponse->getSuccess()) {
                 return $response->json([
                     'error' => [
                         'message' => $orderReferenceResponse->getErrorMessage()
@@ -306,35 +345,5 @@ class AmazonPayController extends Controller
                 ->setIdentifier(__METHOD__)
                 ->error('AmazonPay.getOrderReference', $exception);
         }
-    }
-
-    /**
-     * Maps our language key into the specified language key from Amazon
-     *
-     * @param string $lang
-     * @return string
-     */
-    public function getLanguageCode(string $lang): string
-    {
-        switch ($lang) {
-            case 'de':
-                $lang = 'de-DE';
-                break;
-            case 'en':
-                $lang = 'en-GB';
-                break;
-            case 'es':
-                $lang = 'es-ES';
-                break;
-            case 'fr':
-                $lang = 'fr-FR';
-                break;
-            case 'it':
-                $lang = 'it-IT';
-                break;
-            default:
-                $lang = "en-GB";
-        }
-        return $lang;
     }
 }

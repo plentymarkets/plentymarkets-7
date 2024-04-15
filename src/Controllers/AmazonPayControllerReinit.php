@@ -5,6 +5,7 @@ namespace Payone\Controllers;
 
 use Payone\Adapter\Logger;
 use Payone\Adapter\SessionStorage;
+use Payone\Helpers\LoginHelper;
 use Payone\Helpers\OrderHelper;
 use Payone\Helpers\PaymentHelper;
 use Payone\Helpers\ShopHelper;
@@ -44,12 +45,12 @@ class AmazonPayControllerReinit extends AmazonPayController
      * @param Logger $logger
      * @param OrderHelper $orderHelper
      */
-    public function __construct(Api                        $api,
-                                GenericPaymentDataProvider $dataProvider,
-                                Logger                     $logger,
-                                OrderHelper                $orderHelper
-    )
-    {
+    public function __construct(
+        Api $api,
+        GenericPaymentDataProvider $dataProvider,
+        Logger $logger,
+        OrderHelper $orderHelper
+    ) {
         $this->api = $api;
         $this->dataProvider = $dataProvider;
         $this->logger = $logger;
@@ -68,12 +69,13 @@ class AmazonPayControllerReinit extends AmazonPayController
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getAmazonPayLoginWidgetReinit(Twig           $twig,
-                                                  Response       $response,
-                                                  SessionStorage $sessionStorage,
-                                                  int               $orderId,
-                                                  PaymentHelper  $paymentHelper)
-    {
+    public function getAmazonPayLoginWidgetReinit(
+        Twig $twig,
+        Response $response,
+        SessionStorage $sessionStorage,
+        int $orderId,
+        PaymentHelper $paymentHelper
+    ) {
         $order = $this->orderHelper->getOrderByOrderId($orderId);
 
         $selectedPaymentId = $order->methodOfPaymentId;
@@ -89,11 +91,12 @@ class AmazonPayControllerReinit extends AmazonPayController
         $workOrderId = $sessionStorage->getSessionValue('workOrderId');
 
         if (strlen($clientId) <= 0 || strlen($sellerId) <= 0 || strlen($workOrderId) <= 0) {
-
+            /** @var LoginHelper $loginHelper */
+            $loginHelper = pluginApp(LoginHelper::class);
             $this->logger
                 ->setIdentifier(__METHOD__)
                 ->debug('AmazonPay.configLoginButton', [
-                    'configResponse' => $requestParams
+                    'configResponse' => $loginHelper->cleanupLogs($requestParams)
                 ]);
 
             /** Only load the configuration data if not already stored within the session */
@@ -172,12 +175,13 @@ class AmazonPayControllerReinit extends AmazonPayController
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function renderWidgetsReinit(Twig           $twig,
-                                        PaymentHelper  $paymentHelper,
-                                        int            $orderId,
-                                        Request        $request,
-                                        SessionStorage $sessionStorage): string
-    {
+    public function renderWidgetsReinit(
+        Twig $twig,
+        PaymentHelper $paymentHelper,
+        int $orderId,
+        Request $request,
+        SessionStorage $sessionStorage
+    ): string {
         $order = $this->orderHelper->getOrderByOrderId($orderId);
 
 
@@ -225,11 +229,12 @@ class AmazonPayControllerReinit extends AmazonPayController
      * @return \Symfony\Component\HttpFoundation\Response
      * @throws \Throwable
      */
-    public function getOrderReferenceReinit(Request        $request,
-                                            Response       $response,
-                                            int            $orderId,
-                                            SessionStorage $sessionStorage): \Symfony\Component\HttpFoundation\Response
-    {
+    public function getOrderReferenceReinit(
+        Request $request,
+        Response $response,
+        int $orderId,
+        SessionStorage $sessionStorage
+    ): \Symfony\Component\HttpFoundation\Response {
         try {
             $amazonReferenceId = $request->get('amazonReferenceId');
             $sessionStorage->setSessionValue('amazonReferenceId', $amazonReferenceId);
@@ -249,13 +254,18 @@ class AmazonPayControllerReinit extends AmazonPayController
                 $order->amount->currency,
                 $order->amount->invoiceTotal
             );
+            /** @var LoginHelper $loginHelper */
+            $loginHelper = pluginApp(LoginHelper::class);
             $this->logger
                 ->setIdentifier(__METHOD__)
                 ->debug('AmazonPay.getOrderReference', [
-                    "requestParams" => $requestParams
+                    "requestParams" => $loginHelper->cleanupLogs($requestParams)
                 ]);
             /** @var GetOrderReferenceDetailsResponse $orderReferenceResponse */
-            $orderReferenceResponse = $this->api->doGenericPayment(GenericPayment::ACTIONTYPE_GETORDERREFERENCEDETAILS, $requestParams);
+            $orderReferenceResponse = $this->api->doGenericPayment(
+                GenericPayment::ACTIONTYPE_GETORDERREFERENCEDETAILS,
+                $requestParams
+            );
 
             $this->logger
                 ->setIdentifier(__METHOD__)
@@ -263,7 +273,7 @@ class AmazonPayControllerReinit extends AmazonPayController
                     "workOrderId" => $workOrderId,
                     "amazonReferenceId" => $amazonReferenceId,
                     "accessToken" => $accessToken,
-                    "requestParams" => $requestParams,
+                    "requestParams" => $loginHelper->cleanupLogs($requestParams),
                     "orderReferenceResponse" => (array)$orderReferenceResponse
                 ]);
 

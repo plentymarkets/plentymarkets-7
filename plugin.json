@@ -1,5 +1,5 @@
 {
-  "version": "2.6.0",
+  "version": "2.7.0",
   "license": "",
   "pluginIcon": "icon_plugin_xs.png",
   "price": 0.0,
@@ -37,13 +37,16 @@
     "guzzlehttp/guzzle": "6.*",
     "symfony/serializer": "3.2.7",
     "symfony/property-access": "3.2.7",
-    "doctrine/common": "2.7.2",
+    "doctrine/common": "2.13.1",
     "viison/address-splitter": "0.3.4"
   },
   "serviceProvider": "Payone\\Providers\\PayoneServiceProvider",
   "runOnBuild": [
     "Payone\\Migrations\\CreatePaymentMethods3",
-    "Payone\\Migrations\\CreateSettingsTable"
+    "Payone\\Migrations\\CreateSettingsTable",
+    "Payone\\Migrations\\CreateSettingsBackupTable",
+    "Payone\\Migrations\\CleanupOfOrphansRows",
+    "Payone\\Migrations\\MigrateKeyToCredentialsTable"
   ],
   "dataProviders": [
     {

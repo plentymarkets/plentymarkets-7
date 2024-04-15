@@ -3,6 +3,7 @@
 namespace Payone\Services;
 
 use Payone\Adapter\Logger;
+use Payone\Helpers\LoginHelper;
 use Payone\Helpers\PaymentHelper;
 use Payone\Models\Api\AuthResponse;
 use Payone\Models\PaymentCache;
@@ -10,7 +11,6 @@ use Payone\Providers\Api\Request\AuthDataProvider;
 use Plenty\Modules\Basket\Models\Basket;
 use Plenty\Modules\Payment\Models\Payment;
 use Plenty\Modules\Order\Models\Order;
-
 
 
 class Auth
@@ -89,7 +89,7 @@ class Auth
             throw new \Exception('No Payone payment method');
         }
 
-        $authResponse = $this->doAuthFromOrder( $order);
+        $authResponse = $this->doAuthFromOrder($order);
 
         $this->logger
             ->setIdentifier(__METHOD__)
@@ -102,7 +102,7 @@ class Auth
         $basketData = $data['basket'];
 
         $payment = $this->createPaymentFromOrder($selectedPaymentId, $authResponse, $basketData);
-        $this->paymentCache->storePayment((string) $selectedPaymentId, $payment);
+        $this->paymentCache->storePayment((string)$selectedPaymentId, $payment);
 
         /** @var PaymentCreation $paymentCreationService */
         $paymentCreationService = pluginApp(PaymentCreation::class);
@@ -133,7 +133,6 @@ class Auth
         );
         try {
             $authResponse = $this->api->doAuth($requestData);
-
         } catch (\Exception $e) {
             $this->logger->logException($e);
             throw $e;
@@ -146,58 +145,10 @@ class Auth
     }
 
     /**
-     * @param Basket $basket
-     * @return AuthResponse
-     * @throws \Exception
-     */
-    public function executeAuth(Basket $basket): AuthResponse
-    {
-        $selectedPaymentId = $basket->methodOfPaymentId;
-
-        if (!$selectedPaymentId || !$this->paymentHelper->isPayonePayment($selectedPaymentId)) {
-            throw new \Exception('No Payone payment method');
-        }
-
-        $authResponse = $this->doAuthFromBasket($basket);
-
-        $payment = $this->createPayment($selectedPaymentId, $authResponse, $basket);
-        $this->paymentCache->storePayment((string) $selectedPaymentId, $payment);
-        $this->paymentCache->setActiveBasketId($basket->id);
-
-        return $authResponse;
-    }
-
-    /**
      * @param $selectedPaymentId
      * @param AuthResponse $authResponse
-     * @throws \Exception
      * @return Payment
-     */
-    private function createPayment($selectedPaymentId, $authResponse, $basket): Payment
-    {
-        try {
-            $plentyPayment = $this->paymentCreationService->createPayment(
-                $selectedPaymentId,
-                $authResponse,
-                $basket,
-                $authResponse->getClearing()
-            );
-            if (!$plentyPayment instanceof Payment) {
-                throw new \Exception('Not an instance of Payment');
-            }
-        } catch (\Exception $e) {
-            $this->logger->logException($e);
-            throw new \Exception('The payment could not be created: ' . PHP_EOL . $e->getMessage());
-        }
-
-        return $plentyPayment;
-    }
-
-    /**
-     * @param $selectedPaymentId
-     * @param AuthResponse $authResponse
      * @throws \Exception
-     * @return Payment
      */
     private function createPaymentFromOrder($selectedPaymentId, $authResponse, $basketData): Payment
     {
@@ -221,8 +172,30 @@ class Auth
 
     /**
      * @param Basket $basket
-     * @throws \Exception
      * @return AuthResponse
+     * @throws \Exception
+     */
+    public function executeAuth(Basket $basket): AuthResponse
+    {
+        $selectedPaymentId = $basket->methodOfPaymentId;
+
+        if (!$selectedPaymentId || !$this->paymentHelper->isPayonePayment($selectedPaymentId)) {
+            throw new \Exception('No Payone payment method');
+        }
+
+        $authResponse = $this->doAuthFromBasket($basket);
+
+        $payment = $this->createPayment($selectedPaymentId, $authResponse, $basket);
+        $this->paymentCache->storePayment((string)$selectedPaymentId, $payment);
+        $this->paymentCache->setActiveBasketId($basket->id);
+
+        return $authResponse;
+    }
+
+    /**
+     * @param Basket $basket
+     * @return AuthResponse
+     * @throws \Exception
      */
     private function doAuthFromBasket(Basket $basket): AuthResponse
     {
@@ -234,9 +207,11 @@ class Auth
         );
 
         $requestData = $this->authDataProvider->getDataFromBasket($paymentCode, $basket, '');
+        /** @var LoginHelper $loginHelper */
+        $loginHelper = pluginApp(LoginHelper::class);
         $this->logger->setIdentifier(__METHOD__)->debug(
             'Api.doAuth',
-            ['requestData' => $requestData]
+            ['requestData' => $loginHelper->cleanupLogs($requestData)]
         );
         try {
             $authResponse = $this->api->doAuth($requestData);
@@ -249,5 +224,31 @@ class Auth
         }
 
         return $authResponse;
+    }
+
+    /**
+     * @param $selectedPaymentId
+     * @param AuthResponse $authResponse
+     * @return Payment
+     * @throws \Exception
+     */
+    private function createPayment($selectedPaymentId, $authResponse, $basket): Payment
+    {
+        try {
+            $plentyPayment = $this->paymentCreationService->createPayment(
+                $selectedPaymentId,
+                $authResponse,
+                $basket,
+                $authResponse->getClearing()
+            );
+            if (!$plentyPayment instanceof Payment) {
+                throw new \Exception('Not an instance of Payment');
+            }
+        } catch (\Exception $e) {
+            $this->logger->logException($e);
+            throw new \Exception('The payment could not be created: ' . PHP_EOL . $e->getMessage());
+        }
+
+        return $plentyPayment;
     }
 }

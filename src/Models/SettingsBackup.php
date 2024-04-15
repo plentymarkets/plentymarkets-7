@@ -2,14 +2,12 @@
 
 namespace Payone\Models;
 
-
 use Carbon\Carbon;
 use Plenty\Modules\Plugin\DataBase\Contracts\DataBase;
 use Plenty\Modules\Plugin\DataBase\Contracts\Model;
-use Plenty\Plugin\Log\Loggable;
 
 /**
- * Class Settings
+ * Class Settings Backup
  *
  * @property int $id
  * @property int $clientId
@@ -21,9 +19,8 @@ use Plenty\Plugin\Log\Loggable;
  *
  * @package Payone\Models
  */
-class Settings extends Model
+class SettingsBackup extends Model
 {
-    use Loggable;
     public $id;
     public $clientId;
     public $pluginSetId;
@@ -36,7 +33,7 @@ class Settings extends Model
      */
     public function getTableName(): string
     {
-        return 'Payone::settings';
+        return 'Payone::settings_backup';
     }
 
     /**
@@ -50,10 +47,10 @@ class Settings extends Model
         $this->createdAt = (string)Carbon::now();
 
         $this->value = [
-            'loginId' => $data['loginId'] ?? '',
             'mid' => $data['mid'],
             'portalId' => $data['portalId'],
             'aid' => $data['aid'],
+            'key' => $data['key'],
             'mode' => $data['mode'],
             'authType' => $data['authType'],
             'userId' => $data['userId'],
@@ -74,7 +71,6 @@ class Settings extends Model
             'PAYONE_PAYONE_KLARNA_INVOICE' => $data['PAYONE_PAYONE_KLARNA_INVOICE']
         ];
 
-        unset($this->value['PAYONE_PAYONE_INVOICE_SECURE']['key']);
         return $this->save();
     }
 
@@ -97,9 +93,6 @@ class Settings extends Model
      */
     public function updateValues(array $data): Model
     {
-        if (isset($data['loginId'])) {
-            $this->value['loginId'] = $data['loginId'];
-        }
         if (isset($data['mid'])) {
             $this->value['mid'] = $data['mid'];
         }
@@ -108,6 +101,9 @@ class Settings extends Model
         }
         if (isset($data['aid'])) {
             $this->value['aid'] = $data['aid'];
+        }
+        if (isset($data['key'])) {
+            $this->value['key'] = $data['key'];
         }
         if (isset($data['mode'])) {
             $this->value['mode'] = $data['mode'];
