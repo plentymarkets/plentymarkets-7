@@ -3,6 +3,8 @@
 
 ### Requirements that must be fulfilled:
 - [ ] New version in `plugin.json` updated
+- [ ] New version in `src/PluginConstants.php` updated
+- [ ] New version in `resources/lib/PayoneApi/Lib/Version.php` updated
 - [ ] Changelog entry added
 - [ ] Plugin can be built (`build-set`)
 - [ ] Tested by the author
