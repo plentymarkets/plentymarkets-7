@@ -158,8 +158,7 @@ abstract class PaymentAbstract extends PaymentMethodBaseService
      */
     public function isBackendActive(): bool
     {
-        //TODO: change this back to false
-        return true;
+        return false;
     }
 
     /**
