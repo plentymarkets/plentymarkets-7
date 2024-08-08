@@ -14,5 +14,5 @@ interface DataProviderOrder
      * @param int|null $pluginSetId
      * @return array
      */
-    public function getDataFromOrder(string $paymentCode, Order $order, string $requestReference = null, int $clientId = null, int $pluginSetId = null);
+    public function getDataFromOrder(string $paymentCode, Order $order, string $preAuthUniqueId, int $clientId = null, int $pluginSetId = null);
 }

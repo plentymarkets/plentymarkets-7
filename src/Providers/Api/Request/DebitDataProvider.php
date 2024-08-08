@@ -17,10 +17,16 @@ class DebitDataProvider extends DataProviderAbstract implements DataProviderOrde
      * @param int|null $pluginSetId
      * @return array
      */
-    public function getDataFromOrder(string $paymentCode, Order $order, string $requestReference = null, int $clientId = null, int $pluginSetId = null): array
+    public function getDataFromOrder(string $paymentCode, Order $order, string $preAuthUniqueId, int $clientId = null, int $pluginSetId = null): array
     {
-        // TODO: Implement getDataFromOrder() method.
-        return [];
+        $requestParams = $this->getDefaultRequestData($paymentCode, $clientId, $pluginSetId);
+        $requestParams['context']['sequencenumber'] = $this->getSequenceNumber($order);
+        $requestParams['basket'] = $this->getBasketDataFromOrder($order);
+        $requestParams['basketItems'] = $this->getOrderItemData($order);
+        $requestParams['order'] = $this->getOrderData($order);
+        $requestParams['referenceId'] = $preAuthUniqueId;
+
+        return $requestParams;
     }
 
     /**

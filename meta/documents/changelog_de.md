@@ -1,5 +1,10 @@
 # Release Notes für PAYONE
 
+## 2.7.1 (TBA)
+
+### Behoben
+- Rückzahlungsprozess von Auträgen
+
 ## 2.7.0 (2024-04-15)
 
 ### Geändert
