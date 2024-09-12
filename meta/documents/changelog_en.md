@@ -1,6 +1,6 @@
 # Release Notes for PAYONE
 
-## 2.7.1 (TBA)
+## 2.7.1 (2024-09-12)
 
 ### Fixed
 - Order refund procedure
